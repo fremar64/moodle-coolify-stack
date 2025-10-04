@@ -1,12 +1,15 @@
 # Moodle Coolify Stack
 
 Déploiement complet de **Moodle** sur un serveur **Coolify** (auto-hébergé), incluant :
-- Moodle officiel (`moodlehq/moodle-php-apache`)
+- Moodle officiel version 5.0.1 (`MOODLE_501_STABLE`)
+- Image PHP/Apache optimisée (`moodlehq/moodle-php-apache:8.3`)
 - MariaDB
 - Redis (cache)
 - Cron automatique
 - Sauvegardes quotidiennes vers **Dropbox**
 - Reverse proxy **Traefik** avec SSL Let's Encrypt
+
+> **Note importante** : Cette approche utilise le code source Moodle directement monté dans le container, permettant une personnalisation complète (plugins, thèmes, modifications) contrairement aux images pré-packagées.
 
 ---
 
@@ -19,6 +22,12 @@ Clone le dépôt :
 ```bash
 git clone https://github.com/fremar64/moodle-coolify-stack.git
 cd moodle-coolify-stack
+```
+
+Clone le code source Moodle (version 5.0.1) :
+
+```bash
+git clone -b MOODLE_501_STABLE https://github.com/moodle/moodle.git ./moodle
 ```
 
 Copie et adapte les variables d'environnement :
@@ -65,8 +74,8 @@ rclone config
 
 | Volume                | Contenu                                |
 | --------------------- | -------------------------------------- |
+| `./moodle`            | Code source Moodle (monté en local)   |
 | `moodle_data`         | Fichiers Moodle (cours, plugins, etc.) |
-| `moodle_html`         | Code source PHP de Moodle              |
 | `db_data`             | Données MariaDB                        |
 | `redis_data`          | Cache Redis                            |
 | `traefik_letsencrypt` | Certificats SSL                        |
@@ -77,9 +86,19 @@ rclone config
 
 Tu peux :
 
-* Ajouter des plugins Moodle dans `moodle_html/local/`
-* Modifier la config PHP via un fichier `php.ini` monté dans le container
-* Étendre Traefik pour héberger plusieurs services sur ton domaine
+* **Ajouter des plugins** : Place-les dans `moodle/local/`, `moodle/mod/`, etc.
+* **Installer des thèmes** : Ajoute-les dans `moodle/theme/`
+* **Modifier le code** : Édite directement les fichiers PHP dans `./moodle/`
+* **Configurer PHP** : Monte un fichier `php.ini` personnalisé dans le container
+* **Étendre Traefik** : Ajoute d'autres services sur ton domaine
+
+### Avantages de cette approche
+
+✅ **Code source accessible** : Modification directe des fichiers Moodle  
+✅ **Plugins personnalisés** : Installation facile de modules tiers  
+✅ **Débogage facilité** : Accès direct aux logs et au code  
+✅ **Sauvegardes complètes** : Le code source est inclus dans les backups  
+✅ **Contrôle total** : Pas de limitations d'une image pré-construite
 
 ---
 
