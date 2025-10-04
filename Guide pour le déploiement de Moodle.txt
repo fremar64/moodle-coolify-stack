@@ -1,0 +1,57 @@
+**Guide pas à pas** pour déployer un **Moodle complet (non-Bitnami)** via **Coolify** en utilisant l’approche **Docker Compose Empty**. Cette méthode te donne la main sur la configuration, les volumes et les personnalisations (extensions, thèmes, etc.), contrairement au One-Click Service.
+
+---
+
+## 🔹 Étape 1 : Préparer ton dépôt Git (Docker Compose)
+
+1. Sur ton poste local, crée un dossier (ex. `moodle-docker`).
+2. Ajoute un fichier `docker-compose.yml` avec ce contenu minimal :
+
+
+## 🔹 Étape 2 : Créer ton dépôt GitHub
+
+1. Crée un dépôt privé/public sur GitHub (par ex. `moodle-docker`).
+2. Ajoute ton fichier `docker-compose.yml`.
+3. Pousse le dépôt.
+
+---
+
+## 🔹 Étape 3 : Déployer avec Coolify
+
+1. Va dans **Coolify** → **Applications** → **New Application**.
+2. Choisis **Docker Compose (Empty)**.
+3. Renseigne ton dépôt GitHub (`https://github.com/fremar64/moodle-coolify-stack.git`).
+4. Branche : `main`.
+5. Chemin : `/` (à la racine).
+6. Déploie.
+
+---
+
+## 🔹 Étape 4 : Configurer ton domaine
+
+1. Dans Coolify, ajoute le domaine `https://ecole-en-ligne.ceredis.net`.
+2. Coolify va générer un certificat SSL via Let’s Encrypt.
+3. Vérifie que ton DNS OVH pointe bien vers l’IP du serveur Coolify.
+
+---
+
+## 🔹 Étape 5 : Installation finale de Moodle
+
+1. Ouvre `https://ecole-en-ligne.ceredis.net` dans ton navigateur.
+2. Suis l’assistant d’installation Moodle :
+
+   * Langue, base de données (hôte = `db`, nom = `moodle`, utilisateur = `moodle`, mot de passe = `superpassword`).
+   * Crée le compte admin.
+   * Termine la configuration.
+
+---
+
+✅ Avantages de cette approche :
+
+* Pas enfermé dans l’image Bitnami.
+* Tu peux personnaliser le code source via le volume `moodlecode`.
+* Base de données séparée et persistante.
+* Cron déjà configuré pour Moodle.
+
+---
+

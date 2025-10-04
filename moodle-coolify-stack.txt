@@ -1,0 +1,305 @@
+Voici ce que contiendra le dépôt **`moodle-coolify-stack`** (prêt à pousser sur GitHub à l’adresse `https://github.com/fremar64/moodle-coolify-stack`).
+
+---
+
+## 🗂️ Arborescence du dépôt
+
+```
+moodle-coolify-stack/
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+---
+
+### 📄 `.gitignore`
+
+```gitignore
+# Fichiers d'environnement sensibles
+.env
+.env.*
+
+# Sauvegardes et scripts
+/backups/
+*.sql
+*.tar.gz
+
+# Fichiers temporaires
+*.log
+*.tmp
+
+# Répertoires Docker
+*/node_modules
+*/__pycache__
+*/.vscode
+*/.idea
+```
+
+---
+
+### 📄 `.env.example`
+
+```env
+# --- Domaine principal ---
+DOMAIN=ecole-en-ligne.ceredis.net
+
+# --- Base de données ---
+MYSQL_ROOT_PASSWORD=SuperRootPass!
+MOODLE_DB_PASSWORD=SuperDbPass!
+
+# --- Compte administrateur Moodle ---
+MOODLE_ADMIN_USER=admin
+MOODLE_ADMIN_PASS=SuperAdminPass!
+MOODLE_ADMIN_EMAIL=admin@ceredis.net
+
+# --- Dropbox Backup ---
+# Token généré avec "rclone config" ou depuis ton application Dropbox
+DROPBOX_TOKEN={"access_token":"XXXX","token_type":"bearer","expiry":"0001-01-01T00:00:00Z"}
+```
+
+---
+
+### 📄 `docker-compose.yml`
+
+```yaml
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:11.4
+    container_name: moodle_db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=moodle
+      - MYSQL_USER=moodle
+      - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - moodle_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: moodle_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - moodle_net
+
+  moodle:
+    image: moodlehq/moodle-php-apache:8.3
+    container_name: moodle_app
+    restart: unless-stopped
+    environment:
+      - MOODLE_DB_TYPE=mysqli
+      - MOODLE_DB_HOST=db
+      - MOODLE_DB_NAME=moodle
+      - MOODLE_DB_USER=moodle
+      - MOODLE_DB_PASSWORD=${MOODLE_DB_PASSWORD}
+      - MOODLE_REDIS_HOST=redis
+      - MOODLE_REDIS_PORT=6379
+      - MOODLE_REDIS_DATABASE=0
+      - MOODLE_ADMIN_USER=${MOODLE_ADMIN_USER}
+      - MOODLE_ADMIN_PASS=${MOODLE_ADMIN_PASS}
+      - MOODLE_ADMIN_EMAIL=${MOODLE_ADMIN_EMAIL}
+      - MOODLE_WWWROOT=https://${DOMAIN}
+    volumes:
+      - moodle_html:/var/www/html
+      - moodle_data:/var/www/moodledata
+    depends_on:
+      - db
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moodle.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.moodle.entrypoints=websecure"
+      - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
+    networks:
+      - moodle_net
+      - proxy
+
+  cron:
+    image: moodlehq/moodle-php-apache:8.3
+    container_name: moodle_cron
+    restart: unless-stopped
+    volumes:
+      - moodle_html:/var/www/html
+      - moodle_data:/var/www/moodledata
+    entrypoint: >
+      sh -c "while true; do
+        php /var/www/html/admin/cli/cron.php;
+        sleep 300;
+      done"
+    depends_on:
+      - moodle
+    networks:
+      - moodle_net
+
+  backup:
+    image: rclone/rclone:latest
+    container_name: moodle_backup
+    restart: unless-stopped
+    environment:
+      - RCLONE_CONFIG_DROPBOX_TYPE=dropbox
+      - RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}
+      - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
+    volumes:
+      - moodle_data:/data/moodle
+      - db_data:/data/db
+      - ./backups:/scripts
+    entrypoint: >
+      sh -c "while true; do
+        echo 'Backup started at $(date)';
+        mysqldump -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle > /scripts/db_backup.sql;
+        rclone copy /data/moodle dropbox:/moodle_backups/files --progress;
+        rclone copy /scripts/db_backup.sql dropbox:/moodle_backups/sql --progress;
+        echo 'Backup done at $(date)';
+        sleep 86400;
+      done"
+    depends_on:
+      - db
+      - moodle
+    networks:
+      - moodle_net
+
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${MOODLE_ADMIN_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - proxy
+
+volumes:
+  db_data:
+  redis_data:
+  moodle_html:
+  moodle_data:
+  traefik_letsencrypt:
+
+networks:
+  moodle_net:
+    driver: bridge
+  proxy:
+    driver: bridge
+```
+
+---
+
+### 📄 `README.md`
+
+````markdown
+# Moodle Coolify Stack
+
+Déploiement complet de **Moodle** sur un serveur **Coolify** (auto-hébergé), incluant :
+- Moodle officiel (`moodlehq/moodle-php-apache`)
+- MariaDB
+- Redis (cache)
+- Cron automatique
+- Sauvegardes quotidiennes vers **Dropbox**
+- Reverse proxy **Traefik** avec SSL Let’s Encrypt
+
+---
+
+## 🚀 Déploiement
+
+### 1. Préparation
+
+Clone le dépôt :
+
+```bash
+git clone https://github.com/fremar64/moodle-coolify-stack.git
+cd moodle-coolify-stack
+````
+
+Copie et adapte les variables d’environnement :
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+### 2. Déploiement via Coolify
+
+Dans l’interface Coolify :
+
+1. Clique sur **New Application → Docker Based → Docker Compose Empty**
+2. Sélectionne ce dépôt GitHub
+3. Laisse Coolify générer automatiquement le `docker-compose.yml`
+4. Lance le déploiement
+
+L’application sera accessible à :
+
+> [https://ecole-en-ligne.ceredis.net](https://ecole-en-ligne.ceredis.net)
+
+Le certificat SSL sera généré automatiquement via Let’s Encrypt.
+
+---
+
+## 🔄 Sauvegardes automatiques
+
+* Sauvegarde quotidienne :
+
+  * des fichiers Moodle (`/var/www/moodledata`)
+  * et de la base MySQL (`mysqldump`).
+* Les sauvegardes sont envoyées vers ton **compte Dropbox** (configuré via `DROPBOX_TOKEN`).
+
+Pour générer ton token :
+
+```bash
+rclone config
+# Choisir : n → dropbox → suivre les instructions → copier le token
+```
+
+---
+
+## 📁 Volumes persistants
+
+| Volume                | Contenu                                |
+| --------------------- | -------------------------------------- |
+| `moodle_data`         | Fichiers Moodle (cours, plugins, etc.) |
+| `moodle_html`         | Code source PHP de Moodle              |
+| `db_data`             | Données MariaDB                        |
+| `redis_data`          | Cache Redis                            |
+| `traefik_letsencrypt` | Certificats SSL                        |
+
+---
+
+## 🧩 Personnalisation
+
+Tu peux :
+
+* Ajouter des plugins Moodle dans `moodle_html/local/`
+* Modifier la config PHP via un fichier `php.ini` monté dans le container
+* Étendre Traefik pour héberger plusieurs services sur ton domaine
+
+---
+
+**Auteur :** [Frédéric OUAMBA](https://github.com/fremar64)
+**Licence :** MIT
+
+```
+
+---
+
+```

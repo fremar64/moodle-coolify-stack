@@ -1,0 +1,18 @@
+# Fichiers d'environnement sensibles
+.env
+.env.*
+
+# Sauvegardes et scripts
+/backups/
+*.sql
+*.tar.gz
+
+# Fichiers temporaires
+*.log
+*.tmp
+
+# Répertoires Docker
+*/node_modules
+*/__pycache__
+*/.vscode
+*/.idea
