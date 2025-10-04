@@ -42,6 +42,17 @@ services:
       - MOODLE_ADMIN_PASS=${MOODLE_ADMIN_PASS}
       - MOODLE_ADMIN_EMAIL=${MOODLE_ADMIN_EMAIL}
       - MOODLE_WWWROOT=https://${DOMAIN}
+      - MOODLE_SITE_NAME=${MOODLE_SITE_NAME:-École en Ligne CEREDIS}
+      - LRS_ENDPOINT=${LRS_ENDPOINT}
+      - LRS_USERNAME=${LRS_USERNAME}
+      - LRS_PASSWORD=${LRS_PASSWORD}
+      - LTI_CLIENT_ID=${LTI_CLIENT_ID}
+      - LTI_CLIENT_SECRET=${LTI_CLIENT_SECRET}
+      - LTI_PLATFORM_URL=${LTI_PLATFORM_URL}
+      - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-512M}
+      - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-256M}
+      - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
+      - TZ=${TIMEZONE:-UTC}
     volumes:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
@@ -61,6 +72,8 @@ services:
     image: moodlehq/moodle-php-apache:8.3
     container_name: moodle_cron
     restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE:-UTC}
     volumes:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
@@ -82,6 +95,7 @@ services:
       - RCLONE_CONFIG_DROPBOX_TYPE=dropbox
       - RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}
       - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
+      - TZ=${TIMEZONE:-UTC}
     volumes:
       - moodle_data:/data/moodle
       - db_data:/data/db
