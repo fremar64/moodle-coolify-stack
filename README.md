@@ -102,5 +102,13 @@ Tu peux :
 
 ---
 
+## 📚 Documentation
+
+- **[📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
+- **[🔄 UPDATE_GUIDE.md](UPDATE_GUIDE.md)** - Guide complet de mise à jour Moodle
+- **[📖 Documentation officielle Moodle](https://docs.moodle.org/)**
+
+---
+
 **Auteur :** [Frédéric OUAMBA](https://github.com/fremar64)
 **Licence :** MIT
