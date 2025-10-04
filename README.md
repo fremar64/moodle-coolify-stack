@@ -15,42 +15,17 @@ Déploiement complet de **Moodle** sur un serveur **Coolify** (auto-hébergé), 
 
 ## 🚀 Déploiement
 
-### 1. Préparation
+Pour déployer cette stack avec Coolify, consultez le guide complet :  
+👉 **[README_DEPLOY.md](README_DEPLOY.md)**
 
-Clone le dépôt :
+Ce guide couvre l'approche **Git-Based** recommandée pour Coolify.
 
-```bash
-git clone https://github.com/fremar64/moodle-coolify-stack.git
-cd moodle-coolify-stack
-```
+### Installation rapide
 
-Clone le code source Moodle (version 5.0.1) :
-
-```bash
-git clone -b MOODLE_501_STABLE https://github.com/moodle/moodle.git ./moodle
-```
-
-Copie et adapte les variables d'environnement :
-
-```bash
-cp .env.example .env
-nano .env
-```
-
-### 2. Déploiement via Coolify
-
-Dans l'interface Coolify :
-
-1. Clique sur **New Application → Docker Based → Docker Compose Empty**
-2. Sélectionne ce dépôt GitHub
-3. Laisse Coolify générer automatiquement le `docker-compose.yml`
-4. Lance le déploiement
-
-L'application sera accessible à :
-
-> [https://ecole-en-ligne.ceredis.net](https://ecole-en-ligne.ceredis.net)
-
-Le certificat SSL sera généré automatiquement via Let's Encrypt.
+1. **Fork/Clone** ce dépôt
+2. **Créer une application** Coolify avec Git-Based Repository
+3. **Configurer** les variables d'environnement (voir `.env.example`)
+4. **Déployer** et suivre l'assistant d'installation Moodle
 
 ---
 
@@ -104,7 +79,8 @@ Tu peux :
 
 ## 📚 Documentation
 
-- **[📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
+- **[� README_DEPLOY.md](README_DEPLOY.md)** - Guide de déploiement Coolify Git-Based
+- **[�📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
 - **[🔄 UPDATE_GUIDE.md](UPDATE_GUIDE.md)** - Guide complet de mise à jour Moodle
 - **[📖 Documentation officielle Moodle](https://docs.moodle.org/)**
 
