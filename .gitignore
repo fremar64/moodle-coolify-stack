@@ -16,3 +16,11 @@
 */__pycache__
 */.vscode
 */.idea
+
+# Fichiers parasites Windows et cloud
+*:Zone.Identifier
+*.dropbox.attrs
+*:com.dropbox.attrs
+Thumbs.db
+Desktop.ini
+.DS_Store
