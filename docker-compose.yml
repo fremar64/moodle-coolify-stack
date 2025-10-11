@@ -64,9 +64,9 @@ services:
       - "traefik.http.routers.moodle.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.moodle.entrypoints=websecure"
       - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
+      - "traefik.http.services.moodle.loadbalancer.server.port=80"
     networks:
       - moodle_net
-      - proxy
 
   cron:
     image: moodlehq/moodle-php-apache:8.3
@@ -115,37 +115,11 @@ services:
     networks:
       - moodle_net
 
-  traefik:
-    image: traefik:v3.1
-    container_name: traefik
-    restart: unless-stopped
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${MOODLE_ADMIN_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
-    networks:
-      - proxy
-
 volumes:
   db_data:
   redis_data:
   moodle_data:
-  traefik_letsencrypt:
 
 networks:
   moodle_net:
-    driver: bridge
-  proxy:
     driver: bridge

@@ -79,8 +79,9 @@ Tu peux :
 
 ## 📚 Documentation
 
-- **[� README_DEPLOY.md](README_DEPLOY.md)** - Guide de déploiement Coolify Git-Based
-- **[�📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
+- **[🚀 README_DEPLOY.md](README_DEPLOY.md)** - Guide de déploiement Coolify Git-Based
+- **[🚨 TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Guide de dépannage et résolution d'erreurs
+- **[📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
 - **[🔄 UPDATE_GUIDE.md](UPDATE_GUIDE.md)** - Guide complet de mise à jour Moodle
 - **[📖 Documentation officielle Moodle](https://docs.moodle.org/)**
 

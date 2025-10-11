@@ -42,13 +42,33 @@ moodle/                  # Code source Moodle 5.0.1
 
 ## 🔹 Étape 3 : Configurer les variables d'environnement
 
+⚠️ **IMPORTANT** : Coolify possède son propre Traefik intégré, n'ajoutez PAS de service Traefik dans votre docker-compose.yml !
+
 1. Dans Coolify, va dans **Environment Variables**
-2. Copie le contenu de `.env.example` et adapte :
-   - `DOMAIN=ecole-en-ligne.ceredis.net`
-   - `MYSQL_ROOT_PASSWORD=TonMotDePasseSecurise!`
-   - `MOODLE_DB_PASSWORD=TonAutreMotDePasse!`
-   - `MOODLE_ADMIN_PASS=MotDePasseAdmin!`
-   - `DROPBOX_TOKEN={"access_token":"TON_TOKEN_DROPBOX",...}`
+2. Configure les variables **OBLIGATOIRES** suivantes :
+
+```env
+# Variables OBLIGATOIRES pour le déploiement
+DOMAIN=ecole-en-ligne.ceredis.net
+MYSQL_ROOT_PASSWORD=VotreMotDePasseSecurise!
+MOODLE_DB_PASSWORD=VotreAutreMotDePasse!
+MOODLE_ADMIN_USER=admin
+MOODLE_ADMIN_PASS=VotreMotDePasseAdmin!
+MOODLE_ADMIN_EMAIL=admin@ceredis.net
+```
+
+3. Variables **OPTIONNELLES** (pour intégrations avancées) :
+```env
+# Paramètres système
+TIMEZONE=Africa/Brazzaville
+PHP_MEMORY_LIMIT=512M
+UPLOAD_MAX_SIZE=256M
+
+# Intégrations externes (optionnel)
+LRS_ENDPOINT=https://learning-locker.ceredis.net/data/xAPI/
+LTI_PLATFORM_URL=https://sesalab.ceredis.net
+DROPBOX_TOKEN={"access_token":"VOTRE_TOKEN",...}
+```
 
 ---
 
@@ -128,17 +148,37 @@ Pour mettre à jour Moodle vers une version plus récente, consulte le guide :
 
 ### Problèmes courants
 
-1. **Erreur de connexion base de données** :
-   - Vérifiez les variables `MOODLE_DB_PASSWORD` et `MYSQL_ROOT_PASSWORD`
-   - Attendez que le conteneur MariaDB soit complètement démarré
+1. **Erreur "port 80 already allocated"** :
+   - ❌ Vous avez probablement laissé le service `traefik:` dans docker-compose.yml
+   - ✅ Supprimez complètement ce service, Coolify a son propre Traefik intégré
 
-2. **Certificat SSL non généré** :
-   - Vérifiez que le DNS pointe bien vers votre serveur
-   - Attendez quelques minutes pour la propagation DNS
+2. **Erreur "DOMAIN variable is not set"** :
+   - ❌ La variable DOMAIN n'est pas configurée dans Coolify
+   - ✅ Ajoutez `DOMAIN=ecole-en-ligne.ceredis.net` dans Environment Variables
 
-3. **Performances lentes** :
-   - Vérifiez que Redis est bien actif
-   - Augmentez la mémoire PHP si nécessaire
+3. **Erreur de connexion base de données** :
+   - ❌ Mots de passe incorrects ou non configurés
+   - ✅ Vérifiez `MYSQL_ROOT_PASSWORD` et `MOODLE_DB_PASSWORD` dans Environment Variables
+   - ✅ Attendez que le conteneur MariaDB soit complètement démarré
+
+4. **Certificat SSL non généré** :
+   - ❌ DNS ne pointe pas vers votre serveur
+   - ✅ Vérifiez que le DNS pointe bien vers votre serveur Coolify
+   - ✅ Attendez quelques minutes pour la propagation DNS
+
+5. **Performances lentes** :
+   - ❌ Ressources insuffisantes ou Redis inactif
+   - ✅ Vérifiez que Redis est bien actif
+   - ✅ Augmentez `PHP_MEMORY_LIMIT` si nécessaire
+
+### Logs utiles
+
+```bash
+# Dans Coolify, consultez les logs de chaque service :
+# - Service "moodle" pour les erreurs PHP/Apache
+# - Service "db" pour les erreurs de base de données  
+# - Service "redis" pour les erreurs de cache
+```
 
 ---
 
