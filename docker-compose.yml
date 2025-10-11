@@ -35,6 +35,7 @@ services:
       - MOODLE_DB_NAME=moodle
       - MOODLE_DB_USER=moodle
       - MOODLE_DB_PASSWORD=${MOODLE_DB_PASSWORD}
+      - APACHE_SERVER_NAME=${DOMAIN}
       - MOODLE_REDIS_HOST=redis
       - MOODLE_REDIS_PORT=6379
       - MOODLE_REDIS_DATABASE=0
