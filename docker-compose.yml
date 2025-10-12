@@ -54,9 +54,36 @@ services:
       - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-256M}
       - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
       - TZ=${TIMEZONE:-UTC}
+    entrypoint: >
+      sh -c "
+        echo 'Configuration de PHP pour la sécurité...';
+        echo 'zend.exception_ignore_args = On' > /usr/local/etc/php/conf.d/zend-security.ini;
+        
+        echo 'Vérification des dépendances Composer...';
+        if [ -f /var/www/html/composer.json ]; then
+          cd /var/www/html && composer install --no-dev --classmap-authoritative --no-interaction;
+        fi;
+        
+        echo 'Téléchargement du pack de langue français...';
+        if [ ! -d /var/www/html/lang/fr ]; then
+          mkdir -p /var/www/html/lang;
+          curl -s -o /tmp/fr.zip 'https://download.moodle.org/download.php/direct/langpack/5.1/fr.zip' && 
+          unzip -q /tmp/fr.zip -d /var/www/html/lang/ && 
+          rm -f /tmp/fr.zip &&
+          echo 'Pack de langue français installé avec succès';
+        else
+          echo 'Pack de langue français déjà présent';
+        fi;
+        
+        echo 'Configuration des permissions...';
+        chown -R www-data:www-data /var/www/html /var/www/moodledata;
+        
+        echo 'Démarrage d Apache...';
+        exec apache2-foreground"
     volumes:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
+      - moodle_lang:/var/www/html/lang
     depends_on:
       - db
       - redis
@@ -120,6 +147,7 @@ volumes:
   db_data:
   redis_data:
   moodle_data:
+  moodle_lang:
 
 networks:
   moodle_net:
