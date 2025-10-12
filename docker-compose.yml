@@ -69,7 +69,7 @@ services:
       - moodle_net
 
   cron:
-    image: moodlehq/moodle-php-apache:8.3
+    build: .
     container_name: moodle_cron
     restart: unless-stopped
     environment:

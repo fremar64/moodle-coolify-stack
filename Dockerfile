@@ -4,6 +4,7 @@ FROM moodlehq/moodle-php-apache:8.3
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer Composer
