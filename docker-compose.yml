@@ -41,7 +41,7 @@ services:
       - MOODLE_ADMIN_USER=${MOODLE_ADMIN_USER}
       - MOODLE_ADMIN_PASS=${MOODLE_ADMIN_PASS}
       - MOODLE_ADMIN_EMAIL=${MOODLE_ADMIN_EMAIL}
-      - MOODLE_WWWROOT=https://${DOMAIN}
+      - MOODLE_WWWROOT=${DOMAIN}
       - MOODLE_SITE_NAME=${MOODLE_SITE_NAME:-École en Ligne CEREDIS}
       - LRS_ENDPOINT=${LRS_ENDPOINT}
       - LRS_USERNAME=${LRS_USERNAME}
@@ -54,7 +54,6 @@ services:
       - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
       - TZ=${TIMEZONE:-UTC}
     volumes:
-      - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     depends_on:
       - db
@@ -75,7 +74,6 @@ services:
     environment:
       - TZ=${TIMEZONE:-UTC}
     volumes:
-      - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
