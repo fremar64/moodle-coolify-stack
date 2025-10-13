@@ -54,7 +54,7 @@ services:
       - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
       - TZ=${TIMEZONE:-UTC}
     volumes:
-      - ./moodle/public:/var/www/html
+      - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     depends_on:
       - db
@@ -75,7 +75,7 @@ services:
     environment:
       - TZ=${TIMEZONE:-UTC}
     volumes:
-      - ./moodle/public:/var/www/html
+      - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
