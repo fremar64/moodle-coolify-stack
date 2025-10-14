@@ -18,22 +18,14 @@ echo "Base de données accessible ✓"
 # Vérifier que Moodle est présent (monté via volume)
 if [ ! -f /var/www/html/index.php ]; then
     echo "ERREUR: Fichiers Moodle manquants dans /var/www/html"
-    echo "Assurez-vous que le volume ./moodle:/var/www/html est correctement monté"
+    echo "Assurez-vous que le volume ./moodle/public:/var/www/html est correctement monté"
     exit 1
 fi
 echo "Fichiers Moodle présents ✓"
 
-# Installer les dépendances Composer si nécessaire
-if [ -f /var/www/html/composer.json ] && [ ! -d /var/www/html/vendor ]; then
-    echo "Installation des dépendances Composer..."
-    cd /var/www/html
-    composer install --no-dev --classmap-authoritative --no-interaction --quiet
-    echo "Dépendances Composer installées ✓"
-elif [ -f /var/www/html/composer.json ]; then
-    echo "Dépendances Composer déjà présentes ✓"
-else
-    echo "Aucun composer.json trouvé dans le volume monté"
-fi
+# Les dépendances Moodle sont intégrées dans lib/
+# Composer n'est pas nécessaire pour une installation standard
+echo "Dépendances Moodle intégrées ✓"
 
 # Télécharger le pack de langue français si absent
 if [ ! -d /var/www/html/lang/fr ]; then
@@ -83,7 +75,7 @@ echo "Apache Document Root: $APACHE_DOCUMENT_ROOT"
 echo "Moodle WWW Root: ${MOODLE_WWWROOT:-Non défini}"
 echo "Base de données: ${MOODLE_DB_HOST:-db}:3306"
 echo "Redis: ${MOODLE_REDIS_HOST:-redis}:${MOODLE_REDIS_PORT:-6379}"
-echo "Code source: Volume monté depuis ./moodle"
+echo "Code source: Volume monté depuis ./moodle/public"
 echo "Fichiers Moodle: $(ls -la /var/www/html/index.php 2>/dev/null || echo 'MANQUANTS')"
 echo "================================"
 

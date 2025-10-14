@@ -46,6 +46,24 @@ MYSQL_PASSWORD=<généré_automatiquement>
 - **Volume MariaDB** : `/var/lib/mysql` (base de données)
 - **Volume Redis** : `/data` (cache)
 
+## 🔧 Corrections apportées
+
+### Problème résolu : Erreur 404 Not Found
+
+**Cause** : Les fichiers Moodle étaient dans le sous-dossier `moodle/public/` mais le volume Docker montait `./moodle` vers `/var/www/html`, ce qui rendait les fichiers inaccessibles.
+
+**Solution** : Correction du montage des volumes dans `docker-compose.yml` :
+```yaml
+volumes:
+  - ./moodle/public:/var/www/html  # Corrigé de ./moodle vers ./moodle/public
+  - moodle_data:/var/www/moodledata
+```
+
+### Files essentiels vérifiés ✅
+- `install.php` : Présent dans `moodle/public/install.php`
+- `index.php` : Présent dans `moodle/public/index.php`
+- Toutes les bibliothèques Moodle incluses dans `moodle/public/lib/`
+
 ## 🔧 Configuration post-déploiement
 
 ### 1. Premier accès
