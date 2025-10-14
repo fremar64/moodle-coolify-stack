@@ -45,6 +45,25 @@ else
     echo "Pack de langue français déjà présent ✓"
 fi
 
+# Génération dynamique des paramètres PHP à partir des variables d'environnement
+echo "Application des réglages PHP dynamiques..."
+cat > /usr/local/etc/php/conf.d/99-custom-settings.ini <<EOF
+memory_limit = ${PHP_MEMORY_LIMIT:-512M}
+upload_max_filesize = ${UPLOAD_MAX_SIZE:-256M}
+post_max_size = ${UPLOAD_MAX_SIZE:-256M}
+max_execution_time = ${MAX_EXECUTION_TIME:-300}
+max_input_vars = ${MAX_INPUT_VARS:-5000}
+max_input_time = ${MAX_INPUT_TIME:-300}
+opcache.enable = 1
+opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-256}
+opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-10000}
+opcache.validate_timestamps = 1
+opcache.revalidate_freq = 2
+realpath_cache_size = 4096K
+realpath_cache_ttl = 600
+EOF
+echo "Réglages PHP appliqués ✓"
+
 # Vérifier et corriger les permissions
 echo "Configuration des permissions..."
 chown -R www-data:www-data /var/www/html
