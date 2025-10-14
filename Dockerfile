@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Définir les variables d'environnement Apache
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
 ENV APACHE_RUN_USER=www-data
 ENV APACHE_RUN_GROUP=www-data
 
