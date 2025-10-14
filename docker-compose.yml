@@ -79,7 +79,7 @@ services:
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
-        php /var/www/html/admin/cli/cron.php;
+        php /var/www/html/public/admin/cli/cron.php;
         sleep 300;
       done"
     depends_on:
