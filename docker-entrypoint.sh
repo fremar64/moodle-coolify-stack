@@ -23,6 +23,24 @@ if [ ! -f /var/www/html/index.php ]; then
 fi
 echo "Fichiers Moodle présents ✓"
 
+# Vérifier l'état de /var/www/html/config.php (config réel généré par l'installateur)
+CONFIG_TOP="/var/www/html/config.php"
+if [ -e "$CONFIG_TOP" ]; then
+    # Si c'est un lien symbolique vers public/config.php, on le supprime pour éviter une récursion
+    if [ -L "$CONFIG_TOP" ]; then
+        TARGET=$(readlink -f "$CONFIG_TOP" || true)
+        if echo "$TARGET" | grep -q "/var/www/html/public/config.php$"; then
+            echo "Suppression du symlink /var/www/html/config.php -> public/config.php (évite récursion)"
+            rm -f "$CONFIG_TOP" || true
+        fi
+    fi
+    # Si le fichier top-level contient le loader (signature de public/config.php), on le met de côté
+    if [ -f "$CONFIG_TOP" ] && grep -q "Moodle configuration loader" "$CONFIG_TOP" 2>/dev/null; then
+        echo "Attention: /var/www/html/config.php semble être un loader. Sauvegarde et suppression pour éviter une récursion..."
+        mv "$CONFIG_TOP" "/var/www/html/config.php.bak.$(date +%s)" || true
+    fi
+fi
+
 # Plus de liens symboliques: on utilise /public comme DocumentRoot directement
 
 # Les dépendances Moodle sont intégrées dans lib/
@@ -66,15 +84,25 @@ echo "Réglages PHP appliqués ✓"
 
 # Vérifier et corriger les permissions
 echo "Configuration des permissions..."
-chown -R www-data:www-data /var/www/html
+chown -R www-data:www-data /var/www/html || true
 chown -R www-data:www-data /var/www/moodledata 2>/dev/null || echo "moodledata sera créé lors de l'installation"
-chmod -R 755 /var/www/html
+chmod -R 755 /var/www/html 2>/dev/null || true
 chmod -R 775 /var/www/moodledata 2>/dev/null || echo "moodledata sera créé lors de l'installation"
 echo "Permissions configurées ✓"
 
 # Configuration Apache personnalisée
-cat > /etc/apache2/conf-available/moodle.conf << 'EOF'
-ServerName ${MOODLE_WWWROOT}
+SERVER_NAME_VALUE=${MOODLE_WWWROOT:-}
+# Extraire l'hôte depuis MOODLE_WWWROOT si un schéma/chemin est présent
+if [ -n "$SERVER_NAME_VALUE" ]; then
+    SERVER_NAME_VALUE=${SERVER_NAME_VALUE#*://}
+    SERVER_NAME_VALUE=${SERVER_NAME_VALUE%%/*}
+fi
+if [ -z "$SERVER_NAME_VALUE" ]; then
+    SERVER_NAME_VALUE=localhost
+fi
+
+cat > /etc/apache2/conf-available/moodle.conf << EOF
+ServerName $SERVER_NAME_VALUE
 <Directory /var/www/html/public>
     Options Indexes FollowSymLinks
     AllowOverride All
