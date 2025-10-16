@@ -23,41 +23,50 @@ Ce repository contient une stack complète Docker Compose pour déployer Moodle 
 
 ### 2. Configuration
 
-Coolify détectera automatiquement le fichier `docker-compose.yml` et configurera :
+Coolify détecte automatiquement le fichier `docker-compose.yml` et configure :
 
-- **Service Moodle** : Port 80 avec Apache/PHP
+- **Service Moodle** : Port 80 avec Apache/PHP (DocumentRoot = `/var/www/html/public`)
 - **Service MariaDB** : Base de données avec volume persistant
 - **Service Redis** : Cache pour les performances
 
 ### 3. Variables d'environnement
 
-Coolify configurera automatiquement les variables d'environnement nécessaires :
+À définir dans Coolify (onglet Variables) :
 
 ```env
-MYSQL_ROOT_PASSWORD=<généré_automatiquement>
-MYSQL_DATABASE=moodle
-MYSQL_USER=moodle
-MYSQL_PASSWORD=<généré_automatiquement>
+DOMAIN=ecole-en-ligne.ceredis.net
+MYSQL_ROOT_PASSWORD=<mot_de_passe_root>
+MOODLE_DB_PASSWORD=<mot_de_passe_moodle>
+MOODLE_ADMIN_USER=admin
+MOODLE_ADMIN_PASS=<mot_de_passe_admin>
+MOODLE_ADMIN_EMAIL=admin@ceredis.net
+
+# Réglages PHP (valeurs par défaut déjà présentes)
+PHP_MEMORY_LIMIT=512M
+UPLOAD_MAX_SIZE=256M
+MAX_EXECUTION_TIME=300
+
+# Optionnel : forcer la redirection HTTPS derrière Traefik
+FORCE_HTTPS=1
 ```
 
 ### 4. Volumes et persistance
 
-- **Volume Moodle** : `/var/www/html` (code source)
-- **Volume MariaDB** : `/var/lib/mysql` (base de données)
-- **Volume Redis** : `/data` (cache)
+- **Code Moodle** : `./moodle` → `/var/www/html` (montage de la racine complète)
+- **Données Moodle** : `moodle_data` → `/var/www/moodledata`
+- **MariaDB** : `db_data` → `/var/lib/mysql`
+- **Redis** : `redis_data` → `/data`
 
 ## 🔧 Corrections apportées
 
-### Problème résolu : Erreur 404 Not Found
+### Problème résolu : 404 Not Found / composants manquants
 
-**Cause** : Les fichiers Moodle étaient dans le sous-dossier `moodle/public/` mais le volume Docker montait `./moodle` vers `/var/www/html`, ce qui rendait les fichiers inaccessibles.
+**Cause** : Moodle 5.1 sépare le code web public (`public/`) du code système (`lib/`, `composer.json`). Monter uniquement `public/` masque des fichiers critiques.
 
-**Solution** : Correction du montage des volumes dans `docker-compose.yml` :
-```yaml
-volumes:
-  - ./moodle/public:/var/www/html  # Corrigé de ./moodle vers ./moodle/public
-  - moodle_data:/var/www/moodledata
-```
+**Solution** :
+
+- Monter la racine complète `./moodle` vers `/var/www/html`
+- Configurer Apache avec `DocumentRoot=/var/www/html/public`
 
 ### Files essentiels vérifiés ✅
 - `install.php` : Présent dans `moodle/public/install.php`
@@ -85,10 +94,11 @@ Le cache Redis est automatiquement disponible sur `redis:6379`.
 
 ### 3. Optimisations incluses
 
-- **Composer** : Installation automatique des dépendances
-- **Pack de langue française** : Installé automatiquement
-- **Permissions** : Configurées correctement
-- **Sécurité PHP** : Configuration optimisée
+- **PHP dynamique** : `99-custom-settings.ini` généré depuis les variables d'env
+- **Pack de langue FR** : Téléchargé automatiquement (fallback via interface si échec)
+- **Permissions** : Durcies pour `www-data`
+- **Sécurité PHP** : `zend.exception_ignore_args = On`
+- **Proxy-aware** : Détection HTTPS via `X-Forwarded-Proto`; redirection optionnelle via `FORCE_HTTPS=1`
 
 ## 🏗️ Architecture
 
@@ -111,23 +121,29 @@ Le cache Redis est automatiquement disponible sur `redis:6379`.
 ```
 moodle-coolify-stack/
 ├── docker-compose.yml       # Orchestration des services
-├── Dockerfile              # Image Moodle personnalisée
-├── docker-entrypoint.sh    # Script d'initialisation
-├── moodle/                 # Code source Moodle 5.1
-│   ├── index.php
+├── Dockerfile               # Image Moodle personnalisée
+├── docker-entrypoint.sh     # Script d'initialisation
+├── moodle/                  # Code source Moodle 5.1 (racine complète)
+│   ├── lib/                 # Système
+│   ├── public/              # DocumentRoot web
 │   ├── config-dist.php
 │   ├── composer.json
-│   └── ...                # Tous les fichiers Moodle
-└── DEPLOYMENT_GUIDE.md     # Ce guide
+│   └── ...
+└── DEPLOYMENT_GUIDE.md      # Ce guide
 ```
 
 ## 🔍 Résolution de problèmes
 
 ### Problèmes courants
 
-1. **Erreur 403** : Vérifiez que les permissions sont correctes
-2. **Erreur base de données** : Vérifiez les variables d'environnement
-3. **Composants manquants** : Le code source est maintenant complet
+1. **URL HTTP verrouillée pendant l'installation** :
+  - Vérifiez que le routeur Traefik utilise l'entrypoint `websecure`
+  - Assurez `X-Forwarded-Proto: https` dans les requêtes
+  - Si besoin, définissez `FORCE_HTTPS=1`
+2. **Erreur mémoire pendant l'installation** :
+  - Augmentez `PHP_MEMORY_LIMIT` (ex: 768M)
+  - Vérifiez via `php -i | grep memory_limit` dans le conteneur
+3. **Erreur base de données** : Vérifiez les variables d'environnement et l'accessibilité `db:3306`
 
 ### Logs
 
@@ -164,3 +180,23 @@ En cas de problème :
 ---
 
 **Développé pour Coolify** | Moodle 5.1 | Docker Compose | Git-based deployment
+
+---
+
+## 🔄 Redéploiement via Coolify (checklist)
+
+1. Ouvrez l'application dans Coolify → Deploy
+2. Attendez le build et le lancement des services
+3. Dans les logs du service `moodle`, repérez :
+   - `Base de données accessible ✓`
+   - `Réglages PHP appliqués ✓`
+   - `Configuration Apache activée ✓`
+4. Visitez `https://${DOMAIN}` et vérifiez que l'URL affichée dans l'installateur est en HTTPS
+5. Si non, ajoutez `FORCE_HTTPS=1` et redéployez
+
+## ✅ Vérifications rapides
+
+- PHP memory_limit appliqué :
+  - Dans le conteneur `moodle_app` : `php -i | grep memory_limit`
+- Accès cron : `php /var/www/html/public/admin/cli/cron.php`
+- Fichier `lib/components.json` présent : `/var/www/html/lib/components.json`

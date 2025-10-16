@@ -114,9 +114,40 @@ ServerName $SERVER_NAME_VALUE
 ServerTokens Prod
 ServerSignature Off
 LimitRequestBody 268435456
+
+# Confiance dans le proxy (Traefik) pour le schéma HTTPS
+# Si la requête vient en HTTPS côté client, Traefik transmet X-Forwarded-Proto=https.
+# Ces directives informent PHP/Apache que la requête est sécurisée.
+SetEnvIfNoCase X-Forwarded-Proto "https" HTTPS=on
+SetEnvIfNoCase X-Forwarded-Proto "https" REQUEST_SCHEME=https
+SetEnvIfNoCase X-Forwarded-Proto "https" SERVER_PORT=443
+
+# Optionnel: assurer la variable d'environnement au niveau rewrite
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} =https
+RewriteRule .* - [E=HTTPS:on]
+</IfModule>
 EOF
 
-a2enconf moodle
+# Redirection HTTP -> HTTPS optionnelle derrière proxy
+if [ "${FORCE_HTTPS:-0}" = "1" ]; then
+    cat >> /etc/apache2/conf-available/moodle.conf << 'EOF'
+
+# Redirection forcée HTTP -> HTTPS derrière proxy
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+EOF
+fi
+
+# Activer la configuration et les modules Apache requis
+a2enconf moodle >/dev/null 2>&1 || true
+a2enmod headers >/dev/null 2>&1 || true
+a2enmod rewrite >/dev/null 2>&1 || true
+a2enmod setenvif >/dev/null 2>&1 || true
 echo "Configuration Apache activée ✓"
 
 # Afficher les informations de démarrage
