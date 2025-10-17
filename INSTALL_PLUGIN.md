@@ -49,6 +49,18 @@ git push origin main
    - Suivez les écrans pour installer/migrer le plugin
    - Vider tous les caches (Administration du site → Développement → Vider tous les caches)
 
+### Alternative conseillée en cas de timeouts (CLI)
+
+Si l’interface web est lente ou provoque des 504 lors de l’installation/mise à jour des plugins, exécutez la migration via CLI dans le conteneur web:
+
+```
+# Dans le conteneur moodle_app
+php /var/www/html/public/admin/cli/upgrade.php --non-interactive --allow-unstable
+php /var/www/html/public/admin/cli/purge_caches.php
+```
+
+Cela contourne le proxy et évite les timeouts HTTP.
+
 ## Permissions & propriétaire
 
 - Le conteneur règle déjà les permissions au démarrage, mais côté plugin, assurez-vous que l’owner soit bien `www-data` dans le conteneur:

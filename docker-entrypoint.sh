@@ -116,6 +116,20 @@ ServerSignature Off
 LimitRequestBody 268435456
 Timeout 300
 
+# KeepAlive et MPM Prefork (valeurs prudentes pour VPS modestes)
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 5
+
+<IfModule mpm_prefork_module>
+    StartServers 2
+    MinSpareServers 2
+    MaxSpareServers 5
+    MaxRequestWorkers 50
+    MaxConnectionsPerChild 2000
+    ServerLimit 50
+</IfModule>
+
 # Confiance dans le proxy (Traefik) pour le schéma HTTPS
 # Si la requête vient en HTTPS côté client, Traefik transmet X-Forwarded-Proto=https.
 # Ces directives informent PHP/Apache que la requête est sécurisée.
