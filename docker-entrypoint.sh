@@ -201,6 +201,55 @@ for item in "${PLUGINS[@]}"; do
     fi
 done
 
+# Vérification configurable via variable d'environnement (PLUGIN_CHECK_COMPONENTS)
+# Format: liste séparée par des virgules de "famille:nom", ex:
+#   PLUGIN_CHECK_COMPONENTS="theme:adaptable,mod:assign,block:timeline,auth:oidc,local:wirisquizzes,filter:wiris,qtype:wq,tiny:wiris,enrol:manual,tool:health,report:log,repository:nextcloud,plagiarism:turnitin,availability:completion,dataformat:excel"
+if [ -n "${PLUGIN_CHECK_COMPONENTS:-}" ]; then
+    echo "Vérification des plugins (liste configurée via PLUGIN_CHECK_COMPONENTS)..."
+    IFS=',' read -ra COMPONENTS <<< "$PLUGIN_CHECK_COMPONENTS"
+    for comp in "${COMPONENTS[@]}"; do
+        comp_trim=$(echo "$comp" | xargs)
+        family=${comp_trim%%:*}
+        name=${comp_trim#*:}
+        if [ -z "$family" ] || [ -z "$name" ] || [ "$family" = "$name" ]; then
+            echo "[WARN] Format invalide pour '$comp_trim'. Attendu: famille:nom"
+            continue
+        fi
+        base="/var/www/html/public"
+        case "$family" in
+            theme) pub="$base/theme/$name" ;;
+            mod) pub="$base/mod/$name" ;;
+            block|blocks) pub="$base/blocks/$name" ;;
+            auth) pub="$base/auth/$name" ;;
+            local) pub="$base/local/$name" ;;
+            filter) pub="$base/filter/$name" ;;
+            qtype) pub="$base/question/type/$name" ;;
+            tiny|editor_tiny|tinyplugin) pub="$base/lib/editor/tiny/plugins/$name" ;;
+            enrol) pub="$base/enrol/$name" ;;
+            tool|admin_tool) pub="$base/admin/tool/$name" ;;
+            report) pub="$base/report/$name" ;;
+            repository) pub="$base/repository/$name" ;;
+            plagiarism) pub="$base/plagiarism/$name" ;;
+            availability) pub="$base/availability/condition/$name" ;;
+            dataformat) pub="$base/dataformat/$name" ;;
+            *) echo "[WARN] Famille inconnue '$family' pour '$comp_trim'"; continue ;;
+        esac
+        root=$(echo "$pub" | sed 's#/public/#/#')
+        pubexists=no; rootexists=no
+        [ -d "$pub" ] && pubexists=yes
+        [ -d "$root" ] && rootexists=yes
+        if [ "$pubexists" = "yes" ] && [ "$rootexists" = "no" ]; then
+            echo "[OK] $family:$name présent ($pub)"
+        elif [ "$pubexists" = "yes" ] && [ "$rootexists" = "yes" ]; then
+            echo "[WARN] $family:$name dupliqué (public et racine). Supprimez: $root"
+        elif [ "$pubexists" = "no" ] && [ "$rootexists" = "yes" ]; then
+            echo "[WARN] $family:$name trouvé à la racine ($root) mais pas sous public/. Déplacez vers $pub"
+        else
+            echo "[MISS] $family:$name non trouvé. Placez-le sous $pub (voir INSTALL_PLUGIN.md)"
+        fi
+    done
+fi
+
 # Afficher les informations de démarrage
 echo "=== Informations de démarrage ==="
 echo "Apache Document Root: $APACHE_DOCUMENT_ROOT"
