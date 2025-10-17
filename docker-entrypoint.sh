@@ -69,12 +69,12 @@ cat > /usr/local/etc/php/conf.d/99-custom-settings.ini <<EOF
 memory_limit = ${PHP_MEMORY_LIMIT:-512M}
 upload_max_filesize = ${UPLOAD_MAX_SIZE:-256M}
 post_max_size = ${UPLOAD_MAX_SIZE:-256M}
-max_execution_time = ${MAX_EXECUTION_TIME:-300}
+max_execution_time = ${MAX_EXECUTION_TIME:-600}
 max_input_vars = ${MAX_INPUT_VARS:-5000}
-max_input_time = ${MAX_INPUT_TIME:-300}
+max_input_time = ${MAX_INPUT_TIME:-600}
 opcache.enable = 1
-opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-256}
-opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-10000}
+opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-512}
+opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-20000}
 opcache.validate_timestamps = 1
 opcache.revalidate_freq = 2
 realpath_cache_size = 4096K
@@ -114,6 +114,7 @@ ServerName $SERVER_NAME_VALUE
 ServerTokens Prod
 ServerSignature Off
 LimitRequestBody 268435456
+Timeout 300
 
 # Confiance dans le proxy (Traefik) pour le schéma HTTPS
 # Si la requête vient en HTTPS côté client, Traefik transmet X-Forwarded-Proto=https.
@@ -127,6 +128,10 @@ SetEnvIfNoCase X-Forwarded-Proto "https" SERVER_PORT=443
 RewriteEngine On
 RewriteCond %{HTTP:X-Forwarded-Proto} =https
 RewriteRule .* - [E=HTTPS:on]
+
+# Rediriger toute requête explicite vers /public/* vers la racine, car le DocumentRoot est déjà /public
+RewriteCond %{REQUEST_URI} ^/public(/.*)?$
+RewriteRule ^public/?(.*)$ /$1 [R=301,L]
 </IfModule>
 EOF
 
