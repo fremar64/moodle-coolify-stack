@@ -8,17 +8,21 @@ Ce guide décrit une méthode traçable et reproductible pour ajouter des plugin
 - On versionne les changements (git add/commit/push).
 - Coolify reconstruit et déploie; Moodle détecte le nouveau plugin et propose l’installation/mise à jour.
 
-## Emplacements des plugins (dirroot = `moodle/`)
+## Emplacements des plugins (Moodle 5.1)
 
-| Type      | Dossier cible                           | Exemple                            |
-|-----------|-----------------------------------------|------------------------------------|
-| Thème     | `moodle/theme/<nom_du_theme>`           | `moodle/theme/adaptable`           |
-| Module    | `moodle/mod/<nom_du_module>`            | `moodle/mod/assign`                |
-| Bloc      | `moodle/blocks/<nom_du_bloc>`           | `moodle/blocks/timeline`           |
-| Outil     | `moodle/admin/tool/<nom_de_l_outil>`    | `moodle/admin/tool/health`         |
-| Auth      | `moodle/auth/<nom_du_plugin>`           | `moodle/auth/oidc`                 |
-| Local     | `moodle/local/<nom_du_plugin>`          | `moodle/local/mailtest`            |
-| Filter    | `moodle/filter/<nom_du_plugin>`         | `moodle/filter/multilang2`         |
+Note Moodle 5.1 (DocumentRoot = `moodle/public/`):
+- Les thèmes résident sous `moodle/public/theme/` (exposés côté web).
+- La plupart des autres types de plugins (mod, blocks, local, auth, etc.) restent à la racine `moodle/`.
+
+| Type      | Dossier cible                                   | Exemple                                   |
+|-----------|--------------------------------------------------|-------------------------------------------|
+| Thème     | `moodle/public/theme/<nom_du_theme>`             | `moodle/public/theme/adaptable`           |
+| Module    | `moodle/mod/<nom_du_module>`                    | `moodle/mod/assign`                       |
+| Bloc      | `moodle/blocks/<nom_du_bloc>`                   | `moodle/blocks/timeline`                  |
+| Outil     | `moodle/admin/tool/<nom_de_l_outil>`            | `moodle/admin/tool/health`                |
+| Auth      | `moodle/auth/<nom_du_plugin>`                   | `moodle/auth/oidc`                        |
+| Local     | `moodle/local/<nom_du_plugin>`                  | `moodle/local/mailtest`                   |
+| Filter    | `moodle/filter/<nom_du_plugin>`                 | `moodle/filter/multilang2`                |
 
 Référence complète: https://docs.moodle.org/dev/Plugin_types
 
@@ -30,12 +34,12 @@ Référence complète: https://docs.moodle.org/dev/Plugin_types
 ## Exemple: thème Adaptable
 
 1. Téléchargez depuis le répertoire officiel la version compatible 5.1, ou clonez si un repo Git existe.
-2. Placez le code dans `moodle/theme/adaptable` (le dossier doit contenir version.php, settings.php, lang/, etc.).
+2. Placez le code dans `moodle/public/theme/adaptable` (le dossier doit contenir version.php, settings.php, lang/, etc.).
 3. Versionnez et poussez:
 
 ```
 # À la racine du dépôt
-git add moodle/theme/adaptable
+git add moodle/public/theme/adaptable
 git commit -m "Ajout: thème Adaptable"
 git push origin main
 ```
@@ -51,9 +55,9 @@ git push origin main
 
 ```
 # (Optionnel) Dans le conteneur web
-chown -R www-data:www-data /var/www/html/theme/adaptable
-find /var/www/html/theme/adaptable -type d -exec chmod 775 {} \;
-find /var/www/html/theme/adaptable -type f -exec chmod 664 {} \;
+chown -R www-data:www-data /var/www/html/public/theme/adaptable
+find /var/www/html/public/theme/adaptable -type d -exec chmod 775 {} \;
+find /var/www/html/public/theme/adaptable -type f -exec chmod 664 {} \;
 ```
 
 ## Désinstallation / rollback
