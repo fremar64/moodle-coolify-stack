@@ -169,6 +169,38 @@ a2enmod rewrite >/dev/null 2>&1 || true
 a2enmod setenvif >/dev/null 2>&1 || true
 echo "Configuration Apache activée ✓"
 
+# Vérification des emplacements des plugins personnalisés (WIRIS & Tiny)
+echo "Vérification des plugins personnalisés (emplacements)..."
+PLUGINS=(
+    "local_wirisquizzes;/var/www/html/public/local/wirisquizzes;/var/www/html/local/wirisquizzes"
+    "filter_wiris;/var/www/html/public/filter/wiris;/var/www/html/filter/wiris"
+    "tiny_wiris;/var/www/html/public/lib/editor/tiny/plugins/wiris;/var/www/html/lib/editor/tiny/plugins/wiris"
+    "qtype_wq;/var/www/html/public/question/type/wq;/var/www/html/question/type/wq"
+    "qtype_essaywiris;/var/www/html/public/question/type/essaywiris;/var/www/html/question/type/essaywiris"
+    "qtype_matchwiris;/var/www/html/public/question/type/matchwiris;/var/www/html/question/type/matchwiris"
+    "qtype_multianswerwiris;/var/www/html/public/question/type/multianswerwiris;/var/www/html/question/type/multianswerwiris"
+    "qtype_multichoicewiris;/var/www/html/public/question/type/multichoicewiris;/var/www/html/question/type/multichoicewiris"
+    "qtype_shortanswerwiris;/var/www/html/public/question/type/shortanswerwiris;/var/www/html/question/type/shortanswerwiris"
+    "qtype_truefalsewiris;/var/www/html/public/question/type/truefalsewiris;/var/www/html/question/type/truefalsewiris"
+)
+
+for item in "${PLUGINS[@]}"; do
+    IFS=';' read -r comp pubpath rootpath <<< "$item"
+    pubexists="no"; rootexists="no"
+    [ -d "$pubpath" ] && pubexists="yes"
+    [ -d "$rootpath" ] && rootexists="yes"
+
+    if [ "$pubexists" = "yes" ] && [ "$rootexists" = "no" ]; then
+        echo "[OK] $comp: présent à l'emplacement attendu ($pubpath)"
+    elif [ "$pubexists" = "yes" ] && [ "$rootexists" = "yes" ]; then
+        echo "[WARN] $comp: présent à la fois sous public/ et racine; supprimez le doublon ($rootpath) pour éviter des incohérences."
+    elif [ "$pubexists" = "no" ] && [ "$rootexists" = "yes" ]; then
+        echo "[WARN] $comp: trouvé à la racine ($rootpath) mais pas sous public/. Déplacez-le vers $pubpath. Voir INSTALL_PLUGIN.md."
+    else
+        echo "[MISS] $comp: non trouvé. Si ce plugin est attendu, placez-le sous $pubpath (voir INSTALL_PLUGIN.md)."
+    fi
+done
+
 # Afficher les informations de démarrage
 echo "=== Informations de démarrage ==="
 echo "Apache Document Root: $APACHE_DOCUMENT_ROOT"
