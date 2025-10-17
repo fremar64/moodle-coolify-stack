@@ -128,7 +128,8 @@ Après modification, purgez les caches via l’interface d’administration.
 - **[🚀 COOLIFY_DEPLOYMENT_GUIDE.md](COOLIFY_DEPLOYMENT_GUIDE.md)** - Déploiement Coolify (Git + Docker Compose)
 - **[📦 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Détails de déploiement & architecture
 - **[✅ VALIDATION.md](VALIDATION.md)** - Checklist de validation
-- **[🛠 INSTALL_CLI_GUIDE.md](INSTALL_CLI_GUIDE.md)** - Installation via CLI (optionnel)
+- **[� INSTALL_PLUGIN.md](INSTALL_PLUGIN.md)** - Installer des plugins via Git (recommandé)
+- **[�🛠 INSTALL_CLI_GUIDE.md](INSTALL_CLI_GUIDE.md)** - Installation via CLI (optionnel)
 - **[🚨 TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Guide de dépannage et résolution d'erreurs
 - **[📝 JOURNAL_INSTALLATION.md](JOURNAL_INSTALLATION.md)** - Historique et détails de l'installation
 - **[🔄 UPDATE_GUIDE.md](UPDATE_GUIDE.md)** - Guide complet de mise à jour Moodle
