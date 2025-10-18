@@ -1,0 +1,143 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template unilabeltype_imageboard/imageboard_preview
+    Template to show an imageboard with images.
+
+    Example context (json):
+    {
+        "showintro": false,
+        "intro": "",
+        "images": [
+            {
+                "title": "",
+                "url": "http://localhost/mod/forum/view.php?id=136",
+                "newwindow": 1,
+                "xposition": "150",
+                "yposition": "100",
+                "targetwidth": "80",
+                "targetheight": "0",
+                "fontsize": "12",
+                "imageurl": "http://localhost/image1.png",
+                "nr": 0
+            },
+            {
+                "title": "",
+                "url": "",
+                "newwindow": 1,
+                "xposition": "400",
+                "yposition": "200",
+                "targetwidth": "0",
+                "targetheight": "0",
+                "fontsize": "12",
+                "imageurl": "http://localhost/image2.png",
+                "nr": 1
+            }
+        ],
+        "hasimages": true,
+        "titlecolor": "#00ff00",
+        "titlebackgroundcolor": "#0000ff",
+        "cmid": "140",
+        "canvaswidth": "500",
+        "autoscale": false,
+        "canvasheight": "600",
+        "autocanvasheight": false,
+        "backgroundimage": "",
+        "capababilityforgrid": true,
+        "bordercolor": "#2D57FA",
+        "border": "4",
+        "borderradius": "20",
+        "gridcolor": "#B7009E"
+    }
+}}
+
+<div id="unilabel-imageboard-preview">
+    <div id="unilabel-imageboard-background-canvas" style="position: relative;">
+        <div id="imageboardcontainer">
+            <div></div>
+        </div>
+    </div>
+
+</div>
+
+<div id="unilabeltype-imageboard-controllbuttons" class="d-flex flex-column mt-2">
+    <div class="form-check form-switch">
+        <input type="checkbox"
+               class="form-check-input toggle-grid"
+               id="toggle-grid-{{uniqid}}"
+               data-id="grid">
+        <label class="form-check-label"
+               for="toggle-grid-{{uniqid}}">
+            {{#str}} previewtogglelabel, unilabeltype_imageboard {{/str}}
+            <span class="visually-hidden">{{#str}} previewtogglelabel, unilabeltype_imageboard {{/str}}</span>
+        </label>
+        <span class="form-text text-muted d-inline-block me-2">
+           <i class="icon fa fa-info-circle"
+              aria-hidden="true"
+              data-bs-toggle="tooltip"
+              data-bs-placement="right"
+              title="{{#str}} previewtogglelabel_tooltip, unilabeltype_imageboard {{/str}}">
+           </i>
+        </span>
+    </div>
+
+    <div>
+        <label for="unilabeltype-imageboard-snap">
+            {{#str}} snap, unilabeltype_imageboard {{/str}}
+            <input id="unilabeltype-imageboard-snap" type="number"
+                   min="1" max="100" step="1" value="1">
+        </label>
+    </div>
+
+    <!-- The Modal -->
+    <div class="modal draggable" id="unilabeltype_imageboard_modal">
+        <div class="modal-dialog modal-lg modal-dialog-centered" tabindex="0">
+            <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">&nbsp;</h4>
+                <button type="button" class="btn btn-danger ms-auto" data-bs-dismiss="modal">{{#str}}closebuttontitle{{/str}}</button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body"></div>
+
+            <!-- Modal footer -->
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{{#js}}
+    require(['unilabeltype_imageboard/imageboardpreviewrenderer'], function(imageboardpreviewrenderer) {
+        imageboardpreviewrenderer.init(
+            '{{canvaswidth}}',
+            '{{canvasheight}}',
+            '{{gridcolor}}',
+            '{{xsteps}}',
+            '{{ysteps}}'
+        );
+    });
+
+    require(['unilabeltype_imageboard/editmodal'], function(editmodal) {
+        editmodal.init();
+    });
+
+{{/js}}
