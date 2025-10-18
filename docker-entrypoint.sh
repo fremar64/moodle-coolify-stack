@@ -72,6 +72,11 @@ post_max_size = ${UPLOAD_MAX_SIZE:-256M}
 max_execution_time = ${MAX_EXECUTION_TIME:-600}
 max_input_vars = ${MAX_INPUT_VARS:-5000}
 max_input_time = ${MAX_INPUT_TIME:-600}
+; Production-sûr par défaut
+display_errors = ${PHP_DISPLAY_ERRORS:-Off}
+log_errors = ${PHP_LOG_ERRORS:-On}
+error_log = /proc/self/fd/2
+expose_php = 0
 opcache.enable = 1
 opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-512}
 opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-20000}

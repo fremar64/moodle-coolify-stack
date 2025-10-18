@@ -12,17 +12,19 @@ Ce guide décrit une méthode traçable et reproductible pour ajouter des plugin
 
 Note Moodle 5.1 (DocumentRoot = `moodle/public/`):
 - Les thèmes résident sous `moodle/public/theme/` (exposés côté web).
-- La plupart des autres types de plugins (mod, blocks, local, auth, etc.) restent à la racine `moodle/`.
+- Les autres types de plugins (mod, blocks, local, auth, filter, question, etc.) résident également sous `moodle/public/` dans ce dépôt (les parties web-accessibles y sont servies).
 
-| Type      | Dossier cible                                   | Exemple                                   |
-|-----------|--------------------------------------------------|-------------------------------------------|
-| Thème     | `moodle/public/theme/<nom_du_theme>`             | `moodle/public/theme/adaptable`           |
-| Module    | `moodle/mod/<nom_du_module>`                    | `moodle/mod/assign`                       |
-| Bloc      | `moodle/blocks/<nom_du_bloc>`                   | `moodle/blocks/timeline`                  |
-| Outil     | `moodle/admin/tool/<nom_de_l_outil>`            | `moodle/admin/tool/health`                |
-| Auth      | `moodle/auth/<nom_du_plugin>`                   | `moodle/auth/oidc`                        |
-| Local     | `moodle/local/<nom_du_plugin>`                  | `moodle/local/mailtest`                   |
-| Filter    | `moodle/filter/<nom_du_plugin>`                 | `moodle/filter/multilang2`                |
+| Type      | Dossier cible                                        | Exemple                                           |
+|-----------|-------------------------------------------------------|---------------------------------------------------|
+| Thème     | `moodle/public/theme/<nom_du_theme>`                  | `moodle/public/theme/adaptable`                   |
+| Module    | `moodle/public/mod/<nom_du_module>`                   | `moodle/public/mod/assign`                        |
+| Bloc      | `moodle/public/blocks/<nom_du_bloc>`                  | `moodle/public/blocks/timeline`                   |
+| Outil     | `moodle/public/admin/tool/<nom_de_l_outil>`           | `moodle/public/admin/tool/health`                 |
+| Auth      | `moodle/public/auth/<nom_du_plugin>`                  | `moodle/public/auth/oidc`                         |
+| Local     | `moodle/public/local/<nom_du_plugin>`                 | `moodle/public/local/mailtest`                    |
+| Filter    | `moodle/public/filter/<nom_du_plugin>`                | `moodle/public/filter/multilang2`                 |
+| Type question (qtype) | `moodle/public/question/type/<nom_du_type>`      | `moodle/public/question/type/wq`                  |
+| Plugin Tiny (éditeur) | `moodle/public/lib/editor/tiny/plugins/<nom_du_plugin>` | `moodle/public/lib/editor/tiny/plugins/wiris` |
 
 Référence complète: https://docs.moodle.org/dev/Plugin_types
 
