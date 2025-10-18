@@ -216,7 +216,7 @@ if [ -n "${PLUGIN_CHECK_COMPONENTS:-}" ]; then
             continue
         fi
         base="/var/www/html/public"
-        case "$family" in
+            case "$family" in
             theme) pub="$base/theme/$name" ;;
             mod) pub="$base/mod/$name" ;;
             block|blocks) pub="$base/blocks/$name" ;;
@@ -226,7 +226,8 @@ if [ -n "${PLUGIN_CHECK_COMPONENTS:-}" ]; then
             qtype) pub="$base/question/type/$name" ;;
             tiny|editor_tiny|tinyplugin) pub="$base/lib/editor/tiny/plugins/$name" ;;
             enrol) pub="$base/enrol/$name" ;;
-            tool|admin_tool) pub="$base/admin/tool/$name" ;;
+                tool|admin_tool) pub="$base/admin/tool/$name" ;;
+                format|courseformat|course_format) pub="$base/course/format/$name" ;;
             report) pub="$base/report/$name" ;;
             repository) pub="$base/repository/$name" ;;
             plagiarism) pub="$base/plagiarism/$name" ;;
