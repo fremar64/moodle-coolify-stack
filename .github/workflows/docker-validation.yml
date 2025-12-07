@@ -1,0 +1,72 @@
+name: Docker Compose Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Validate docker-compose.yml
+        run: |
+          docker compose config > /dev/null
+          echo "✅ docker-compose.yml is valid"
+      
+      - name: Check Dockerfile syntax
+        run: |
+          docker build --no-cache --target builder -f Dockerfile . || docker build --no-cache -f Dockerfile -t moodle-test . 
+          echo "✅ Dockerfile syntax is valid"
+      
+      - name: Validate environment variables
+        run: |
+          if [ ! -f .env.example ]; then
+            echo "❌ .env.example not found"
+            exit 1
+          fi
+          echo "✅ .env.example exists"
+          
+          # Vérifier les variables critiques
+          for var in DOMAIN MYSQL_ROOT_PASSWORD MOODLE_DB_PASSWORD MOODLE_ADMIN_USER MOODLE_ADMIN_PASS MOODLE_ADMIN_EMAIL; do
+            if ! grep -q "^${var}=" .env.example; then
+              echo "❌ Missing variable: $var"
+              exit 1
+            fi
+          done
+          echo "✅ All critical variables present"
+      
+      - name: Check healthcheck configuration
+        run: |
+          if ! docker compose config | grep -q "healthcheck"; then
+            echo "❌ No healthchecks found in docker-compose.yml"
+            exit 1
+          fi
+          echo "✅ Healthchecks configured"
+      
+      - name: Validate documentation
+        run: |
+          required_docs=("README.md" "SETUP.md" "MAINTENANCE.md" "TROUBLESHOOTING.md")
+          for doc in "${required_docs[@]}"; do
+            if [ ! -f "$doc" ]; then
+              echo "❌ Missing documentation: $doc"
+              exit 1
+            fi
+          done
+          echo "✅ All required documentation present"
+      
+      - name: Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All validation checks passed!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

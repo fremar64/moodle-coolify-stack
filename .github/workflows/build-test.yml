@@ -1,0 +1,156 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: moodle-coolify:test
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          outputs: type=docker,dest=/tmp/moodle-image.tar
+      
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp/moodle-image.tar
+          retention-days: 1
+  
+  test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp
+      
+      - name: Load Docker image
+        run: docker load --input /tmp/moodle-image.tar
+      
+      - name: Create test environment file
+        run: |
+          cat > .env <<EOF
+          DOMAIN=localhost
+          MYSQL_ROOT_PASSWORD=test_root_password_123
+          MOODLE_DB_PASSWORD=test_moodle_password_456
+          MOODLE_ADMIN_USER=admin
+          MOODLE_ADMIN_PASS=Test@Admin123!
+          MOODLE_ADMIN_EMAIL=admin@test.local
+          MOODLE_SITE_NAME=Test Moodle
+          PHP_MEMORY_LIMIT=512M
+          UPLOAD_MAX_SIZE=256M
+          TIMEZONE=UTC
+          EOF
+      
+      - name: Start services
+        run: |
+          docker compose up -d db redis
+          echo "Waiting for services to be healthy..."
+          sleep 30
+      
+      - name: Check MariaDB health
+        run: |
+          for i in {1..30}; do
+            if docker compose exec -T db mysqladmin ping -h localhost --silent; then
+              echo "✅ MariaDB is healthy"
+              exit 0
+            fi
+            echo "Waiting for MariaDB... ($i/30)"
+            sleep 2
+          done
+          echo "❌ MariaDB failed to start"
+          docker compose logs db
+          exit 1
+      
+      - name: Check Redis health
+        run: |
+          if docker compose exec -T redis redis-cli ping | grep -q PONG; then
+            echo "✅ Redis is healthy"
+          else
+            echo "❌ Redis health check failed"
+            docker compose logs redis
+            exit 1
+          fi
+      
+      - name: Test database connection
+        run: |
+          docker compose exec -T db mysql -u moodle -ptest_moodle_password_456 -e "SHOW DATABASES;" | grep moodle
+          echo "✅ Database connection successful"
+      
+      - name: Start Moodle service
+        run: |
+          docker compose up -d moodle
+          echo "Waiting for Moodle to start..."
+          sleep 45
+      
+      - name: Check Moodle health
+        run: |
+          for i in {1..20}; do
+            if docker compose exec -T moodle curl -f http://localhost/ > /dev/null 2>&1; then
+              echo "✅ Moodle is responding"
+              exit 0
+            fi
+            echo "Waiting for Moodle... ($i/20)"
+            sleep 3
+          done
+          echo "❌ Moodle failed to respond"
+          docker compose logs moodle
+          exit 1
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose down -v
+          docker compose rm -f
+      
+      - name: Test summary
+        if: success()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All integration tests passed!"
+          echo "  - MariaDB: Healthy"
+          echo "  - Redis: Healthy"
+          echo "  - Moodle: Responding"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

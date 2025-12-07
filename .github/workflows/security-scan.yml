@@ -1,0 +1,70 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Scan quotidien à 2h du matin
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: |
+          docker build -t moodle-coolify:${{ github.sha }} .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'moodle-coolify:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Run Trivy for human-readable output
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'moodle-coolify:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+  
+  docker-compose-scan:
+    name: Docker Compose Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for secrets in docker-compose
+        run: |
+          if grep -r "password.*=" docker-compose.yml | grep -v '\${'; then
+            echo "❌ Hardcoded passwords found in docker-compose.yml"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+      
+      - name: Validate .gitignore
+        run: |
+          if ! grep -q "^\.env$" .gitignore; then
+            echo "❌ .env not in .gitignore"
+            exit 1
+          fi
+          echo "✅ .env properly ignored"

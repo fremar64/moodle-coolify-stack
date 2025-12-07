@@ -233,11 +233,65 @@ OPCACHE_MEMORY_CONSUMPTION=512  # Plus de cache
 
 | Document | Description |
 |----------|-------------|
+| **[START_HERE.md](START_HERE.md)** | ⭐ Guide de démarrage et navigation rapide |
 | **[SETUP.md](SETUP.md)** | 🚀 Guide d'installation complet étape par étape |
 | **[MAINTENANCE.md](MAINTENANCE.md)** | 🔧 Maintenance, mises à jour et sauvegardes |
 | **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | 🚨 Résolution des problèmes courants |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | 🏗️ Détails techniques de l'architecture |
 | **[.env.example](.env.example)** | ⚙️ Référence des variables d'environnement |
+| **[scripts/README.md](scripts/README.md)** | 📜 Documentation des scripts d'administration |
+
+---
+
+## 🛠️ Scripts d'Administration
+
+Des scripts bash sont disponibles pour automatiser les tâches courantes :
+
+### 🔄 Sauvegarde
+```bash
+# Sauvegarde complète
+./scripts/backup.sh
+
+# Sauvegarde base de données uniquement
+./scripts/backup.sh --type db
+
+# Avec nettoyage des anciennes sauvegardes
+./scripts/backup.sh --cleanup
+```
+
+### 🔁 Restauration
+```bash
+# Lister les sauvegardes disponibles
+./scripts/restore.sh --list
+
+# Restaurer base de données et fichiers
+./scripts/restore.sh \
+  --db backups/moodle_db_20241207.sql.gz \
+  --files backups/moodle_files_20241207.tar.gz
+```
+
+### ⬆️ Mise à jour Moodle
+```bash
+# Lister les versions disponibles
+./scripts/update-moodle.sh --list
+
+# Mettre à jour vers une version spécifique
+./scripts/update-moodle.sh --version MOODLE_502_STABLE
+```
+
+### 🏥 Vérification de santé
+```bash
+# Check basique
+./scripts/health-check.sh
+
+# Check détaillé
+./scripts/health-check.sh --detailed
+
+# Sortie JSON (pour monitoring)
+./scripts/health-check.sh --json
+```
+
+📖 **Documentation complète** : Voir [scripts/README.md](scripts/README.md)
 
 ---
 
@@ -249,7 +303,7 @@ OPCACHE_MEMORY_CONSUMPTION=512  # Plus de cache
 - Base de données MySQL
 - Fichiers Moodle (`/var/www/moodledata`)
 
-### Commandes utiles
+### Commandes Docker utiles
 
 ```bash
 # Voir les logs
@@ -261,11 +315,11 @@ docker compose restart moodle
 # Accéder au shell
 docker exec -it moodle_app bash
 
-# Exécuter le cron manuellement
-docker exec moodle_app php /var/www/html/public/admin/cli/cron.php
+# Vérifier la santé des services
+docker compose ps
 
-# Vider les caches
-docker exec moodle_app php /var/www/html/public/admin/cli/purge_caches.php
+# Utiliser le script health-check
+./scripts/health-check.sh --detailed
 ```
 
 📖 **Guide complet** : Consultez [MAINTENANCE.md](MAINTENANCE.md)
