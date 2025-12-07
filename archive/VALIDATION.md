@@ -11,8 +11,8 @@ Voici une validation de la structure corrigée :
 
 ### ✅ Structure des volumes Docker :
 ```
-./moodle/public → /var/www/html (Code source)
-moodle_data → /var/www/moodledata (Données utilisateur)
+./moodle → /var/www/html           (Code source racine)
+moodle_data → /var/www/moodledata  (Données utilisateur)
 ```
 
 ### ✅ Bibliothèques intégrées :
@@ -21,11 +21,13 @@ moodle_data → /var/www/moodledata (Données utilisateur)
 - Plus de 60 dossiers de bibliothèques inclus
 
 ### 🔧 Problème résolu :
-L'erreur **404 Not Found** était causée par un mauvais montage de volume :
-- **Avant** : `./moodle:/var/www/html` (fichiers dans un sous-dossier)
-- **Après** : `./moodle/public:/var/www/html` (fichiers directement accessibles)
+Les erreurs **404 Not Found** et **components.json not found** étaient dues au montage de `public/` seul.
+
+- ✅ Solution : monter la racine complète `./moodle` et définir `DocumentRoot=/var/www/html/public`.
 
 ### 🚀 Statut du déploiement :
 **PRÊT** pour redéploiement dans Coolify avec les corrections appliquées.
 
-Les fichiers `install.php` et tous les composants Moodle seront maintenant correctement accessibles par Apache.
+Vérifications supplémentaires :
+- URL en HTTPS dans l'installateur (sinon définir `FORCE_HTTPS=1`)
+- `php -i | grep memory_limit` reflète `${PHP_MEMORY_LIMIT}`

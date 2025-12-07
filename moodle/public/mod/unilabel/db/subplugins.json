@@ -1,0 +1,8 @@
+{
+    "subplugintypes": {
+        "unilabeltype": "type"
+    },
+    "plugintypes": {
+        "unilabeltype": "mod\/unilabel\/type"
+    }
+}

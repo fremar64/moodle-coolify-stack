@@ -69,12 +69,17 @@ cat > /usr/local/etc/php/conf.d/99-custom-settings.ini <<EOF
 memory_limit = ${PHP_MEMORY_LIMIT:-512M}
 upload_max_filesize = ${UPLOAD_MAX_SIZE:-256M}
 post_max_size = ${UPLOAD_MAX_SIZE:-256M}
-max_execution_time = ${MAX_EXECUTION_TIME:-300}
+max_execution_time = ${MAX_EXECUTION_TIME:-600}
 max_input_vars = ${MAX_INPUT_VARS:-5000}
-max_input_time = ${MAX_INPUT_TIME:-300}
+max_input_time = ${MAX_INPUT_TIME:-600}
+; Production-sûr par défaut
+display_errors = ${PHP_DISPLAY_ERRORS:-Off}
+log_errors = ${PHP_LOG_ERRORS:-On}
+error_log = /proc/self/fd/2
+expose_php = 0
 opcache.enable = 1
-opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-256}
-opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-10000}
+opcache.memory_consumption = ${OPCACHE_MEMORY_CONSUMPTION:-512}
+opcache.max_accelerated_files = ${OPCACHE_MAX_FILES:-20000}
 opcache.validate_timestamps = 1
 opcache.revalidate_freq = 2
 realpath_cache_size = 4096K
@@ -114,10 +119,142 @@ ServerName $SERVER_NAME_VALUE
 ServerTokens Prod
 ServerSignature Off
 LimitRequestBody 268435456
+Timeout 300
+
+# KeepAlive et MPM Prefork (valeurs prudentes pour VPS modestes)
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 5
+
+<IfModule mpm_prefork_module>
+    StartServers 2
+    MinSpareServers 2
+    MaxSpareServers 5
+    MaxRequestWorkers 50
+    MaxConnectionsPerChild 2000
+    ServerLimit 50
+</IfModule>
+
+# Confiance dans le proxy (Traefik) pour le schéma HTTPS
+# Si la requête vient en HTTPS côté client, Traefik transmet X-Forwarded-Proto=https.
+# Ces directives informent PHP/Apache que la requête est sécurisée.
+SetEnvIfNoCase X-Forwarded-Proto "https" HTTPS=on
+SetEnvIfNoCase X-Forwarded-Proto "https" REQUEST_SCHEME=https
+SetEnvIfNoCase X-Forwarded-Proto "https" SERVER_PORT=443
+
+# Optionnel: assurer la variable d'environnement au niveau rewrite
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} =https
+RewriteRule .* - [E=HTTPS:on]
+
+# Rediriger toute requête explicite vers /public/* vers la racine, car le DocumentRoot est déjà /public
+RewriteCond %{REQUEST_URI} ^/public(/.*)?$
+RewriteRule ^public/?(.*)$ /$1 [R=301,L]
+</IfModule>
 EOF
 
-a2enconf moodle
+# Redirection HTTP -> HTTPS optionnelle derrière proxy
+if [ "${FORCE_HTTPS:-0}" = "1" ]; then
+    cat >> /etc/apache2/conf-available/moodle.conf << 'EOF'
+
+# Redirection forcée HTTP -> HTTPS derrière proxy
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+EOF
+fi
+
+# Activer la configuration et les modules Apache requis
+a2enconf moodle >/dev/null 2>&1 || true
+a2enmod headers >/dev/null 2>&1 || true
+a2enmod rewrite >/dev/null 2>&1 || true
+a2enmod setenvif >/dev/null 2>&1 || true
 echo "Configuration Apache activée ✓"
+
+# Vérification des emplacements des plugins personnalisés (WIRIS & Tiny)
+echo "Vérification des plugins personnalisés (emplacements)..."
+PLUGINS=(
+    "local_wirisquizzes;/var/www/html/public/local/wirisquizzes;/var/www/html/local/wirisquizzes"
+    "filter_wiris;/var/www/html/public/filter/wiris;/var/www/html/filter/wiris"
+    "tiny_wiris;/var/www/html/public/lib/editor/tiny/plugins/wiris;/var/www/html/lib/editor/tiny/plugins/wiris"
+    "qtype_wq;/var/www/html/public/question/type/wq;/var/www/html/question/type/wq"
+    "qtype_essaywiris;/var/www/html/public/question/type/essaywiris;/var/www/html/question/type/essaywiris"
+    "qtype_matchwiris;/var/www/html/public/question/type/matchwiris;/var/www/html/question/type/matchwiris"
+    "qtype_multianswerwiris;/var/www/html/public/question/type/multianswerwiris;/var/www/html/question/type/multianswerwiris"
+    "qtype_multichoicewiris;/var/www/html/public/question/type/multichoicewiris;/var/www/html/question/type/multichoicewiris"
+    "qtype_shortanswerwiris;/var/www/html/public/question/type/shortanswerwiris;/var/www/html/question/type/shortanswerwiris"
+    "qtype_truefalsewiris;/var/www/html/public/question/type/truefalsewiris;/var/www/html/question/type/truefalsewiris"
+)
+
+for item in "${PLUGINS[@]}"; do
+    IFS=';' read -r comp pubpath rootpath <<< "$item"
+    pubexists="no"; rootexists="no"
+    [ -d "$pubpath" ] && pubexists="yes"
+    [ -d "$rootpath" ] && rootexists="yes"
+
+    if [ "$pubexists" = "yes" ] && [ "$rootexists" = "no" ]; then
+        echo "[OK] $comp: présent à l'emplacement attendu ($pubpath)"
+    elif [ "$pubexists" = "yes" ] && [ "$rootexists" = "yes" ]; then
+        echo "[WARN] $comp: présent à la fois sous public/ et racine; supprimez le doublon ($rootpath) pour éviter des incohérences."
+    elif [ "$pubexists" = "no" ] && [ "$rootexists" = "yes" ]; then
+        echo "[WARN] $comp: trouvé à la racine ($rootpath) mais pas sous public/. Déplacez-le vers $pubpath. Voir INSTALL_PLUGIN.md."
+    else
+        echo "[MISS] $comp: non trouvé. Si ce plugin est attendu, placez-le sous $pubpath (voir INSTALL_PLUGIN.md)."
+    fi
+done
+
+# Vérification configurable via variable d'environnement (PLUGIN_CHECK_COMPONENTS)
+# Format: liste séparée par des virgules de "famille:nom", ex:
+#   PLUGIN_CHECK_COMPONENTS="theme:adaptable,mod:assign,block:timeline,auth:oidc,local:wirisquizzes,filter:wiris,qtype:wq,tiny:wiris,enrol:manual,tool:health,report:log,repository:nextcloud,plagiarism:turnitin,availability:completion,dataformat:excel"
+if [ -n "${PLUGIN_CHECK_COMPONENTS:-}" ]; then
+    echo "Vérification des plugins (liste configurée via PLUGIN_CHECK_COMPONENTS)..."
+    IFS=',' read -ra COMPONENTS <<< "$PLUGIN_CHECK_COMPONENTS"
+    for comp in "${COMPONENTS[@]}"; do
+        comp_trim=$(echo "$comp" | xargs)
+        family=${comp_trim%%:*}
+        name=${comp_trim#*:}
+        if [ -z "$family" ] || [ -z "$name" ] || [ "$family" = "$name" ]; then
+            echo "[WARN] Format invalide pour '$comp_trim'. Attendu: famille:nom"
+            continue
+        fi
+        base="/var/www/html/public"
+            case "$family" in
+            theme) pub="$base/theme/$name" ;;
+            mod) pub="$base/mod/$name" ;;
+            block|blocks) pub="$base/blocks/$name" ;;
+            auth) pub="$base/auth/$name" ;;
+            local) pub="$base/local/$name" ;;
+            filter) pub="$base/filter/$name" ;;
+            qtype) pub="$base/question/type/$name" ;;
+            tiny|editor_tiny|tinyplugin) pub="$base/lib/editor/tiny/plugins/$name" ;;
+            enrol) pub="$base/enrol/$name" ;;
+                tool|admin_tool) pub="$base/admin/tool/$name" ;;
+                format|courseformat|course_format) pub="$base/course/format/$name" ;;
+            report) pub="$base/report/$name" ;;
+            repository) pub="$base/repository/$name" ;;
+            plagiarism) pub="$base/plagiarism/$name" ;;
+            availability) pub="$base/availability/condition/$name" ;;
+            dataformat) pub="$base/dataformat/$name" ;;
+            *) echo "[WARN] Famille inconnue '$family' pour '$comp_trim'"; continue ;;
+        esac
+        root=$(echo "$pub" | sed 's#/public/#/#')
+        pubexists=no; rootexists=no
+        [ -d "$pub" ] && pubexists=yes
+        [ -d "$root" ] && rootexists=yes
+        if [ "$pubexists" = "yes" ] && [ "$rootexists" = "no" ]; then
+            echo "[OK] $family:$name présent ($pub)"
+        elif [ "$pubexists" = "yes" ] && [ "$rootexists" = "yes" ]; then
+            echo "[WARN] $family:$name dupliqué (public et racine). Supprimez: $root"
+        elif [ "$pubexists" = "no" ] && [ "$rootexists" = "yes" ]; then
+            echo "[WARN] $family:$name trouvé à la racine ($root) mais pas sous public/. Déplacez vers $pub"
+        else
+            echo "[MISS] $family:$name non trouvé. Placez-le sous $pub (voir INSTALL_PLUGIN.md)"
+        fi
+    done
+fi
 
 # Afficher les informations de démarrage
 echo "=== Informations de démarrage ==="

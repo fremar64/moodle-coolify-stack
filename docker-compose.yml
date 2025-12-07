@@ -5,6 +5,12 @@ services:
     image: mariadb:11.4
     container_name: moodle_db
     restart: unless-stopped
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--skip-character-set-client-handshake",
+      "--innodb-buffer-pool-size=512M"
+    ]
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=moodle
@@ -78,7 +84,12 @@ services:
       - "traefik.http.routers.moodle.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.moodle.entrypoints=websecure"
       - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.moodle.service=moodle"
+      - "traefik.http.routers.moodle.middlewares=moodle-retry"
       - "traefik.http.services.moodle.loadbalancer.server.port=80"
+      # Middleware retry (réessaye une requête en cas d'échec réseau transitoire)
+      - "traefik.http.middlewares.moodle-retry.retry.attempts=2"
+      - "traefik.http.middlewares.moodle-retry.retry.initialinterval=500ms"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
@@ -94,13 +105,14 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE:-UTC}
+      - CRON_INTERVAL_SECONDS=${CRON_INTERVAL_SECONDS:-60}
     volumes:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
         php /var/www/html/public/admin/cli/cron.php;
-        sleep 300;
+        sleep ${CRON_INTERVAL_SECONDS:-60};
       done"
     depends_on:
       moodle:

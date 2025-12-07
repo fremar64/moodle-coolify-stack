@@ -1,0 +1,68 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template unilabeltype_imageboard/previewimage
+    Template to show an image on the previewimage.
+
+    Example context (json):
+    {
+        "number": 2,
+        "displaynumber": 3,
+        "src": "https://example.com/empty.gif"
+    }
+}}
+
+
+<div id='unilabel-imageboard-element-{{number}}' draggable='true' class='unilabel-imageboard-element-draggable' style='z-index: 5; position: absolute;'>
+    <div id='id_elementtitle-{{number}}' draggable='false' class='unilabel-imageboard-title' style='position: absolute;'>
+        <i class="fa fa-refresh" aria-hidden="true"></i>
+    </div>
+    <div id='imageidimage-{{number}}' draggable='false'>
+        <div class="image-container">
+            <img id='unilabel-imageboard-imageid-{{number}}' draggable='false' class='unilabel-imageboard-image' alt='image' src='{{{src}}}' style='position: relative;'>
+            <div class="unilabel-imageboard-coordinatesandtools bg-light d-flex justify-content-between">
+                <div id="unilabel-imageboard-coordinates-{{number}}" class="unilabel-imageboard-coordinates mx-1" tabindex="0">{{displaynumber}}: 0 / 0</div>
+                <div class="border-start px-1">
+                    <a href="#" class="action" title="{{#str}} edit_image_nr, unilabeltype_imageboard, {{displaynumber}} {{/str}}"><i class="fa fa-cog" data-type="imageaction" data-number="{{number}}"></i></a>
+                    <a href="#" class="delete-button" title="{{#str}} delete_image_nr, unilabeltype_imageboard, {{displaynumber}} {{/str}}">
+                        <i class="fa fa-trash fa-fw text-danger" data-type="deleteimage" data-number="{{number}}"></i>
+                        <span class="visually-hidden">{{#str}} delete_image_nr, unilabeltype_imageboard, {{displaynumber}} {{/str}}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="unilabel_imageboard_confirm_inline_{{number}}" class="modal" tabindex="-1" style="z-index: 1040;" aria-hidden="true">
+    <div class="modal-dialog" tabindex="0">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{#str}}confirm{{/str}}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{#str}}closebuttontitle{{/str}}"></button>
+            </div>
+            <div class="modal-body">
+                {{#str}} delete_image_nr, unilabeltype_imageboard, {{displaynumber}} {{/str}}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{#str}} cancel {{/str}}</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" data-action="deleteelement" data-id="{{number}}">{{#str}} delete {{/str}}</button>
+            </div>
+        </div>
+    </div>
+</div>

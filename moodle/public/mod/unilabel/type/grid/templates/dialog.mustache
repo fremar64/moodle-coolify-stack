@@ -1,0 +1,60 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template unilabeltype_grid/dialog
+    Template to show a bootstrap modal dialog.
+
+    Example context (json):
+    {
+        "title": "Title",
+        "name": "Topic 1",
+        "section": "1",
+        "summary": "",
+        "cmlist": "<ul class=\"section img-text\"><\/ul>",
+        "nr": 0,
+        "first": true
+    }
+}}
+
+<!-- The Modal -->
+<div class="modal moodle-has-zindex" data-region="modal-container" role="dialog" tabindex="-1" id="grid-modal-{{cmid}}-{{nr}}">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" data-region="modal" tabindex="0">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">{{{title}}}</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                {{{content}}}
+            </div>
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{{#str}} closebuttontitle {{/str}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{#js}}
+    require(['mod_unilabel/modal_helper'], function(modalhelper) {
+        modalhelper.init('#grid-modal-{{cmid}}-{{nr}}');
+    });
+{{/js}}
