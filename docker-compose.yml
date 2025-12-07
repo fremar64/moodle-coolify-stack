@@ -18,12 +18,6 @@ services:
       - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     networks:
       - moodle_net
 
@@ -34,12 +28,6 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
     networks:
       - moodle_net
 
@@ -75,16 +63,8 @@ services:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/index.php"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+      - db
+      - redis
     networks:
       - moodle_net
 
@@ -104,8 +84,7 @@ services:
         sleep ${CRON_INTERVAL_SECONDS:-60};
       done"
     depends_on:
-      moodle:
-        condition: service_healthy
+      - moodle
     networks:
       - moodle_net
 
@@ -132,10 +111,8 @@ services:
         sleep 86400;
       done"
     depends_on:
-      db:
-        condition: service_healthy
-      moodle:
-        condition: service_healthy
+      - db
+      - moodle
     networks:
       - moodle_net
 
