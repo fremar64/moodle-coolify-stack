@@ -1,3 +1,5 @@
+# Moodle Coolify Stack - Version: 2025-12-07-02
+# Déploiement optimisé pour Coolify (sans healthchecks Docker)
 version: '3.9'
 
 services:
