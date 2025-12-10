@@ -19,7 +19,7 @@
 # Temporary files including undo
 *~
 #
-/config.php
+# /config.php # Décommenté pour Docker : config versionné
 /tags
 /TAGS
 /cscope.*

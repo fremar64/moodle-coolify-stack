@@ -1,15 +1,24 @@
 # Fichiers d'environnement sensibles
 .env
 .env.*
+!.env.example
 
 # Sauvegardes et scripts
 /backups/
 *.sql
+*.sql.gz
 *.tar.gz
+*.bak
+*.backup
 
-# Fichiers temporaires
+# Fichiers temporaires et logs
 *.log
 *.tmp
+/logs/
+/tmp/
+
+# Configuration Moodle générée
+moodle/config.php.bak.*
 
 # Répertoires Docker
 */node_modules
@@ -23,4 +32,12 @@
 *:com.dropbox.attrs
 Thumbs.db
 Desktop.ini
-.DS_Storearchive/
+.DS_Store
+
+# Archives
+/archive/
+
+# Données volumineuses
+moodledata/
+db_data/
+redis_data/

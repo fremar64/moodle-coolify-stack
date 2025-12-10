@@ -1,13 +1,13 @@
-name: Security Scan
+name: Security Scan (Manual Only)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Scan quotidien à 2h du matin
-    - cron: '0 2 * * *'
+  # Désactivé temporairement - à exécuter manuellement uniquement
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
