@@ -46,8 +46,8 @@ $CFG->session_redis_prefix = 'moodle_session_';
 $CFG->session_redis_acquire_lock_timeout = 120;
 $CFG->session_redis_lock_expire = 7200;
 
-// Cache store with Redis
-$CFG->alternative_cache_factory_class = 'tool_forcedcache_cache_factory';
+// Cache store with Redis (désactivé - plugin manquant)
+// $CFG->alternative_cache_factory_class = 'tool_forcedcache_cache_factory';
 
 // Security settings
 $CFG->cookiesecure = true; // HTTPS only
