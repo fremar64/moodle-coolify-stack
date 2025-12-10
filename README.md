@@ -1,255 +1,301 @@
-# 🎓 Moodle Coolify Stack
+# 🎓 Moodle Coolify Stack - CEREDIS Production
 
-Stack complète **Moodle 5.1** prête pour le déploiement sur **Coolify** avec code source, haute disponibilité et sauvegardes automatiques.
+> Plateforme éducative complète avec intégrations LTI, sauvegardes automatisées et sécurité renforcée
 
-[![Moodle](https://img.shields.io/badge/Moodle-5.1-orange)](https://moodle.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-blue)](https://docs.docker.com/compose/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Production](https://img.shields.io/badge/status-production-success)]()
+[![Moodle](https://img.shields.io/badge/moodle-5.1-orange)](https://moodle.org/)
+[![Docker](https://img.shields.io/badge/docker-compose-blue)](https://docs.docker.com/compose/)
+[![License](https://img.shields.io/badge/license-GPL--3.0-lightgrey)]()
+
+**URL Production** : https://ecole-en-ligne.ceredis.net
+
+---
+
+## 📋 Vue d'ensemble
+
+Stack Moodle optimisée pour Coolify avec :
+- ✅ **Moodle 5.1** avec structure source/public séparée
+- ✅ **MariaDB 11.4** + **Redis 7** pour performances optimales
+- ✅ **Sauvegardes automatiques** vers Dropbox avec chiffrement AES-256
+- ✅ **Intégration LTI 1.3** pour outils externes (SeSaLab, Billes et Calculs)
+- ✅ **Sécurité renforcée** (SSL/TLS, secrets, isolation réseau)
+- ✅ **Support 100+ utilisateurs concurrents** avec monitoring
 
 ---
 
 ## 🚀 Démarrage rapide
 
+### Pour les nouveaux utilisateurs
+
+1. **Accédez à la plateforme** : https://ecole-en-ligne.ceredis.net
+2. **Guide d'exploitation** : [EXPLOITATION_GUIDE.md](EXPLOITATION_GUIDE.md) 
+3. **Configuration LTI** : [LTI_CONFIGURATION_GUIDE.md](LTI_CONFIGURATION_GUIDE.md)
+
+### Pour les administrateurs système
+
 ```bash
-# 1. Forkez ou clonez ce dépôt
+# 1. Cloner le repository
 git clone https://github.com/fremar64/moodle-coolify-stack.git
+cd moodle-coolify-stack
 
-# 2. Créez une application dans Coolify
-#    - Type: Docker Compose (Git Repository)
-#    - URL: https://github.com/fremar64/moodle-coolify-stack
-#    - Branch: main
+# 2. Déployer via Coolify
+# Configurer les variables d'environnement dans Coolify UI
+# Lancer le déploiement
 
-# 3. Configurez les variables d'environnement (voir .env.example)
+# 3. Vérifier l'état
+docker compose ps
+docker compose logs -f moodle
 
-# 4. Déployez et accédez à votre domaine
+# 4. Configurer les sauvegardes Dropbox
+./scripts/setup-dropbox.sh
+./scripts/backup.sh --dropbox
 ```
-
-🎯 **Installation complète** : Consultez [SETUP.md](SETUP.md) pour le guide détaillé pas-à-pas.
 
 ---
 
-## ✨ Fonctionnalités
+## 📖 Documentation
 
-### 🎯 Stack complète
-- ✅ **Moodle 5.1 Stable** - Code source complet et personnalisable
-- ✅ **MariaDB 11.4** - Base de données optimisée avec healthchecks
-- ✅ **Redis 7** - Cache haute performance pour sessions et données
-- ✅ **Apache/PHP 8.3** - Serveur web configuré et sécurisé
-- ✅ **Traefik** - Reverse proxy avec SSL Let's Encrypt automatique
-
-### 🔧 Automatisations
-- ✅ **Cron Moodle** - Tâches planifiées toutes les 5 minutes
-- ✅ **Sauvegardes Dropbox** - Quotidiennes (DB + fichiers)
-- ✅ **Healthchecks** - Surveillance automatique de tous les services
-- ✅ **Variables PHP dynamiques** - Configuration via environnement
-
-### 🛡️ Production-ready
-- ✅ **SSL/TLS automatique** - Certificats Let's Encrypt
-- ✅ **Volumes persistants** - Données sécurisées et durables
-- ✅ **Logs centralisés** - Surveillance via Coolify
-- ✅ **Isolation réseau** - Réseau Docker dédié
-
----
-
-## 📦 Composition de la stack
-
-```yaml
-Services:
-├── db          → MariaDB 11.4 (base de données)
-├── redis       → Redis 7 (cache & sessions)
-├── moodle      → Apache/PHP 8.3 + Moodle 5.1
-├── cron        → Tâches planifiées Moodle
-└── backup      → Sauvegardes automatiques Dropbox
-
-Volumes:
-├── db_data          → Données MariaDB persistantes
-├── redis_data       → Cache Redis persistant
-└── moodle_data      → Fichiers utilisateurs Moodle
-```
+| Guide | Description | Public cible |
+|-------|-------------|--------------|
+| **[EXPLOITATION_GUIDE.md](EXPLOITATION_GUIDE.md)** | 🎯 **Guide opérationnel complet** | Admins, Support |
+| [LTI_CONFIGURATION_GUIDE.md](LTI_CONFIGURATION_GUIDE.md) | Configuration outils externes LTI | Admins Moodle |
+| [SECURITY_HARDENING_GUIDE.md](SECURITY_HARDENING_GUIDE.md) | Sécurisation de la plateforme | DevOps, Sécurité |
+| [PERFORMANCE_OPTIMIZATION_GUIDE.md](PERFORMANCE_OPTIMIZATION_GUIDE.md) | Optimisations et monitoring | DevOps |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Résolution de problèmes | Support |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Déploiement initial | Admins système |
 
 ---
 
 ## 🏗️ Architecture
 
-```
-Internet
-   ↓
-┌─────────────────────────────────┐
-│  Coolify Traefik (Reverse Proxy)|
-│  - SSL/TLS Let's Encrypt        │
-│  - Port 443 → 80                │
-└──────────────┬──────────────────┘
-               ↓
-┌──────────────────────────────────┐
-│  Moodle Container                │
-│  - Apache/PHP 8.3                │
-│  - Code source monté             │
-│  - Healthcheck: curl localhost/  │
-└───┬──────────────────────────┬───┘
-    ↓                          ↓
-┌─────────────┐        ┌──────────────┐
-│  MariaDB    │        │    Redis     │
-│  - Port 3306│        │  - Port 6379 │
-│  - Volume   │        │  - AOF       │
-│  - Health ✓ │        │  - Health ✓  │
-└─────────────┘        └──────────────┘
+Cette stack utilise une architecture optimisée :
+- **Source Moodle** : `/var/www/html` (code principal)
+- **Webroot public** : `/var/www/html/public` (exposition HTTP)
+- **Données Moodle** : `/var/www/moodledata` (volumes persistants)
+- **Séparation code/données** pour sécurité et performance
+
+---
+
+## 📦 Services
+
+```yaml
+moodle-stack/
+├── db          → MariaDB 11.4 (base de données)
+├── redis       → Redis 7 (cache sessions & données)
+├── moodle      → Apache/PHP 8.3 + Moodle 5.1
+├── cron        → Tâches planifiées Moodle (5 min)
+└── backup      → Sauvegardes automatiques vers Dropbox
+
+Volumes persistants:
+├── db_data          → Données MariaDB
+├── redis_data       → Cache Redis avec AOF
+└── moodle_data      → Fichiers utilisateurs Moodle
 ```
 
 ---
 
-## 📋 Prérequis
+## 🔐 Sécurité et Performance
 
-### Serveur Coolify
-- **OS** : Linux (Ubuntu 22.04+ recommandé)
-- **CPU** : 2 cœurs minimum
-- **RAM** : 4 GB minimum (8 GB recommandé)
-- **Stockage** : 20 GB minimum (50+ GB recommandé)
-- **Coolify** : Version 4.0+
+### Sécurité
+- ✅ SSL/TLS automatique via Let's Encrypt (Coolify/Traefik)
+- ✅ Secrets gérés via variables d'environnement Coolify
+- ✅ Isolation réseau Docker (réseau `moodle_net`)
+- ✅ Sauvegardes chiffrées AES-256-CBC
+- ✅ Firewall UFW configuré (ports 22/80/443 uniquement)
+- ✅ Fail2ban pour protection brute-force
 
-### DNS et réseau
-- Nom de domaine configuré
-- Enregistrement A pointant vers le serveur Coolify
-- Port 80/443 ouverts
+Voir [SECURITY_HARDENING_GUIDE.md](SECURITY_HARDENING_GUIDE.md) pour la configuration complète.
 
----
+### Performance
+- ✅ Redis cache pour sessions et données Moodle
+- ✅ OPcache PHP activé (512MB)
+- ✅ MariaDB buffer pool 2GB + indexation optimisée
+- ✅ Compression Gzip + headers de cache HTTP
+- ✅ Monitoring avec scripts d'alertes automatiques
 
-## ⚙️ Configuration
+Voir [PERFORMANCE_OPTIMIZATION_GUIDE.md](PERFORMANCE_OPTIMIZATION_GUIDE.md) pour les optimisations.
 
-### Variables d'environnement
-
-Copiez `.env.example` vers `.env` et modifiez :
-
-```env
-# Obligatoires
-DOMAIN=ecole-en-ligne.example.com
-MYSQL_ROOT_PASSWORD=MotDePasseSecuriseRoot123!
-MOODLE_DB_PASSWORD=MotDePasseMoodleSecurise456!
-MOODLE_ADMIN_USER=admin
-MOODLE_ADMIN_PASS=MotDePasseAdmin789!
-MOODLE_ADMIN_EMAIL=admin@example.com
-
-# Recommandées
-PHP_MEMORY_LIMIT=512M
-UPLOAD_MAX_SIZE=256M
-TIMEZONE=Europe/Paris
-
-# Optionnelles
-DROPBOX_TOKEN=votre_token_dropbox_pour_backups
-```
-
-📖 **Référence complète** : Voir [.env.example](.env.example) pour toutes les options disponibles.
-
----
-
-## 🚀 Déploiement
-
-### Via Coolify (recommandé)
-
-1. **Créer une application**
-   - Projects → + New Resource
-   - Type: Public Repository
-   - URL: `https://github.com/fremar64/moodle-coolify-stack`
-
-2. **Configurer**
-   - Domain: votre-domaine.com
-   - Build Pack: Docker Compose
-   - Environment Variables: depuis .env.example
-
-3. **Déployer**
-   - Cliquez sur Deploy
-   - Attendez 5-10 minutes
-   - Accédez à votre domaine
-
-📖 **Guide complet** : Consultez [SETUP.md](SETUP.md)
-
-### En local (développement)
+### Sauvegardes
+- ✅ **Quotidiennes automatisées** : 3h du matin via cron
+- ✅ **Dropbox** : Rétention 30 jours, chiffrement AES-256
+- ✅ **Local** : Rétention 7 jours
+- ✅ **Inclut** : Base de données, fichiers utilisateurs, configuration
 
 ```bash
-# Cloner le dépôt
-git clone https://github.com/fremar64/moodle-coolify-stack.git
-cd moodle-coolify-stack
+# Sauvegarde manuelle
+./scripts/backup.sh --dropbox
 
-# Configurer l'environnement
-cp .env.example .env
-nano .env  # Modifier les variables
-
-# Démarrer
-docker compose up -d
-
-# Suivre les logs
-docker compose logs -f
-
-# Accéder à http://localhost
+# Restauration
+./scripts/restore.sh --from-dropbox --date 20251207
 ```
 
 ---
 
-## 🎨 Personnalisation
+## 🎓 Intégration LTI
 
-### Ajouter des plugins
+Configuration des outils externes pour accès depuis Moodle :
+- **SeSaLab** (fork) : Exercices de physique/sciences
+- **Billes et Calculs** (Vercel) : Application Next.js mathématiques
 
+Guide complet : [LTI_CONFIGURATION_GUIDE.md](LTI_CONFIGURATION_GUIDE.md)
+
+**Étapes rapides** :
+1. Moodle → **Administration** → **Plugins** → **Outil externe**
+2. **Configurer un outil manuellement**
+3. Remplir Client ID, Secret, URL de lancement
+4. Activer Services LTI (Assignment and Grade, etc.)
+5. Ajouter l'activité "Outil externe" dans un cours
+
+---
+
+## 🛠️ Scripts disponibles
+
+| Script | Description |
+|--------|-------------|
+| `backup.sh` | Sauvegarde complète ou partielle (DB/fichiers/code) |
+| `restore.sh` | Restauration depuis sauvegarde locale ou Dropbox |
+| `setup-dropbox.sh` | Configuration initiale Dropbox |
+| `optimize-database.sh` | Optimisation mensuelle base de données |
+| `performance-monitor.sh` | Monitoring temps réel avec alertes |
+| `security-alerts.sh` | Surveillance événements sécurité |
+| `health-check.sh` | Vérification état de tous les services |
+| `update-moodle.sh` | Mise à jour Moodle (à venir) |
+
+Tous les scripts dans `/scripts` avec documentation intégrée (`--help`).
+
+---
+
+## 🆘 Support et Troubleshooting
+
+### Problèmes courants
+
+**Moodle inaccessible ("no available server")** :
 ```bash
-# Cloner le dépôt
-git clone https://github.com/votre-username/moodle-coolify-stack
-cd moodle-coolify-stack
+# Vérifier logs Traefik
+docker logs traefik-coolify
 
-# Ajouter un plugin
-cd moodle/mod/  # ou local/, theme/, auth/, etc.
-# Placez votre plugin ici
+# Vérifier réseau Docker
+docker network inspect coolify
 
-# Committer et pousser
-git add .
-git commit -m "Ajout plugin XYZ"
-git push
-
-# Redéployer depuis Coolify
+# Redémarrer Coolify stack
+cd /root/.coolify && docker compose restart
 ```
 
-### Personnaliser le thème
-
+**Erreur 500 sur Moodle** :
 ```bash
-# Ajouter un thème personnalisé
-cd moodle/theme/
-git clone https://github.com/votre-theme montheme
+# Consulter logs
+docker compose logs -f moodle
 
-# Activer dans Moodle
-# Administration → Apparence → Thèmes → Sélecteur de thèmes
+# Purger caches
+docker compose exec moodle php /var/www/html/admin/cli/purge_caches.php
 ```
 
-### Modifier la configuration PHP
+**Base de données lente** :
+```bash
+# Optimiser
+./scripts/optimize-database.sh
 
-Les paramètres PHP sont configurables via variables d'environnement :
+# Vérifier slow queries
+docker compose exec db mysql -u root -p -e "SHOW VARIABLES LIKE 'slow_query_log';"
+```
 
-```env
-PHP_MEMORY_LIMIT=1024M          # Augmenter pour gros cours
-UPLOAD_MAX_SIZE=512M            # Fichiers volumineux
-MAX_EXECUTION_TIME=600          # Scripts longs
-OPCACHE_MEMORY_CONSUMPTION=512  # Plus de cache
+Voir [TROUBLESHOOTING.md](TROUBLESHOOTING.md) pour la liste complète.
+
+---
+
+## 📅 Maintenance
+
+### Quotidien (automatisé)
+- 02:00 : Purge caches Moodle
+- 03:00 : Sauvegarde complète Dropbox
+- Toutes les 15 min : Monitoring performances
+
+### Mensuel (manuel)
+- Optimiser base de données
+- Nettoyer logs > 90 jours
+- Tester restauration sauvegarde
+- Audit sécurité léger
+
+### Trimestriel
+- Rotation secrets LTI
+- Audit plugins installés
+- Mise à jour Moodle
+
+Calendrier complet : [EXPLOITATION_GUIDE.md](EXPLOITATION_GUIDE.md)
+
+---
+
+## 📂 Structure du projet
+
+```
+moodle-coolify-stack/
+├── docker-compose.yml           # Orchestration services
+├── Dockerfile                   # Image Moodle personnalisée
+├── docker-entrypoint.sh         # Script d'initialisation
+├── .env.example                 # Template variables
+│
+├── moodle/                      # Code source Moodle 5.1
+│   ├── admin/
+│   ├── lib/
+│   ├── public/                  # Webroot exposé
+│   └── ...
+│
+├── scripts/                     # Scripts opérationnels
+│   ├── backup.sh
+│   ├── restore.sh
+│   ├── setup-dropbox.sh
+│   ├── optimize-database.sh
+│   ├── performance-monitor.sh
+│   └── security-alerts.sh
+│
+└── docs/                        # Documentation
+    ├── EXPLOITATION_GUIDE.md
+    ├── LTI_CONFIGURATION_GUIDE.md
+    ├── SECURITY_HARDENING_GUIDE.md
+    ├── PERFORMANCE_OPTIMIZATION_GUIDE.md
+    └── TROUBLESHOOTING.md
 ```
 
 ---
 
-## 📚 Documentation
+## 🤝 Contribution
 
-| Document | Description |
-|----------|-------------|
-| **[START_HERE.md](START_HERE.md)** | ⭐ Guide de démarrage et navigation rapide |
-| **[SETUP.md](SETUP.md)** | 🚀 Guide d'installation complet étape par étape |
-| **[MAINTENANCE.md](MAINTENANCE.md)** | 🔧 Maintenance, mises à jour et sauvegardes |
-| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | 🚨 Résolution des problèmes courants |
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | 🏗️ Détails techniques de l'architecture |
-| **[.env.example](.env.example)** | ⚙️ Référence des variables d'environnement |
-| **[scripts/README.md](scripts/README.md)** | 📜 Documentation des scripts d'administration |
+Les contributions sont bienvenues !
+
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
+3. Commit (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
 
 ---
 
-## 🛠️ Scripts d'Administration
+## 📜 Licence
 
-Des scripts bash sont disponibles pour automatiser les tâches courantes :
+GPL-3.0 (compatible avec Moodle)
 
-### 🔄 Sauvegarde
-```bash
-# Sauvegarde complète
+---
+
+## 🙏 Remerciements
+
+- [Moodle](https://moodle.org/) - LMS open source
+- [Coolify](https://coolify.io/) - Plateforme de déploiement self-hosted
+- [Traefik](https://traefik.io/) - Reverse proxy moderne
+- Communauté open source éducative
+
+---
+
+## 📞 Contact
+
+- **Repository** : https://github.com/fremar64/moodle-coolify-stack
+- **Issues** : https://github.com/fremar64/moodle-coolify-stack/issues
+- **Email** : admin@ceredis.net
+
+---
+
+**Statut** : ✅ Production Ready  
+**Dernière mise à jour** : Décembre 2025  
+**Maintenu par** : Équipe CEREDIS
 ./scripts/backup.sh
 
 # Sauvegarde base de données uniquement

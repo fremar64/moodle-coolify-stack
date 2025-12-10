@@ -13,6 +13,8 @@ BACKUP_DIR="${PROJECT_DIR}/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_TYPE="${1:-full}"
 OUTPUT_DIR="${2:-$BACKUP_DIR}"
+USE_DROPBOX=false
+RETENTION_DAYS=7
 
 # Couleurs pour l'affichage
 RED='\033[0;31m'
@@ -120,13 +122,18 @@ backup_full() {
     log_info "Démarrage d'une sauvegarde complète..."
     echo ""
     
+    local backup_files=()
+    
     DB_FILE=$(backup_database)
+    backup_files+=("$DB_FILE")
     echo ""
     
     FILES_FILE=$(backup_files)
+    backup_files+=("$FILES_FILE")
     echo ""
     
     CODE_FILE=$(backup_code)
+    backup_files+=("$CODE_FILE")
     echo ""
     
     # Créer un fichier manifest
@@ -155,23 +162,106 @@ Checksums (SHA256):
 -------------------
 $(sha256sum "$DB_FILE" "$FILES_FILE" "$CODE_FILE")
 EOF
+    backup_files+=("$MANIFEST_FILE")
+    
+    log_info "✅ Manifest créé: $MANIFEST_FILE"
+    echo ""
+    
+    # Upload vers Dropbox si activé
+    if [ "$USE_DROPBOX" = true ]; then
+        echo ""
+        upload_to_dropbox "${backup_files[@]}"
+    fi
+}
+Files: $(du -h "$FILES_FILE" | cut -f1)
+Code: $(du -h "$CODE_FILE" | cut -f1)
+Total: $(du -ch "$DB_FILE" "$FILES_FILE" "$CODE_FILE" | tail -1 | cut -f1)
+
+Checksums (SHA256):
+-------------------
+$(sha256sum "$DB_FILE" "$FILES_FILE" "$CODE_FILE")
+EOF
     
     log_info "✅ Manifest créé: $MANIFEST_FILE"
     echo ""
 }
 
-# Nettoyage des anciennes sauvegardes (garder les 7 dernières)
+# Nettoyage des anciennes sauvegardes
 cleanup_old_backups() {
-    log_info "Nettoyage des anciennes sauvegardes (conservation: 7 dernières)..."
+    log_info "Nettoyage des anciennes sauvegardes (conservation: ${RETENTION_DAYS} dernières)..."
     
     cd "$OUTPUT_DIR"
     
-    # Supprimer les sauvegardes de plus de 7 jours
-    find . -name "moodle_*.tar.gz" -mtime +7 -delete 2>/dev/null || true
-    find . -name "moodle_*.sql.gz" -mtime +7 -delete 2>/dev/null || true
-    find . -name "backup_manifest_*.txt" -mtime +7 -delete 2>/dev/null || true
+    # Supprimer les sauvegardes locales de plus de RETENTION_DAYS jours
+    find . -name "moodle_*.tar.gz" -mtime +${RETENTION_DAYS} -delete 2>/dev/null || true
+    find . -name "moodle_*.sql.gz" -mtime +${RETENTION_DAYS} -delete 2>/dev/null || true
+    find . -name "backup_manifest_*.txt" -mtime +${RETENTION_DAYS} -delete 2>/dev/null || true
     
-    log_info "✅ Nettoyage terminé"
+    log_info "✅ Nettoyage local terminé"
+    
+    # Nettoyage Dropbox si activé
+    if [ "$USE_DROPBOX" = true ] && [ -n "$DROPBOX_TOKEN" ]; then
+        log_info "Nettoyage des sauvegardes Dropbox (>30 jours)..."
+        docker run --rm \
+            -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
+            -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+            rclone/rclone:latest \
+            delete dropbox:/moodle_backups --min-age 30d --rmdirs || true
+        log_info "✅ Nettoyage Dropbox terminé"
+    fi
+}
+
+# Envoyer les sauvegardes vers Dropbox
+upload_to_dropbox() {
+    if [ -z "$DROPBOX_TOKEN" ]; then
+        log_warn "Token Dropbox non configuré, saut de l'envoi distant"
+        return 0
+    fi
+    
+    log_info "Envoi des sauvegardes vers Dropbox..."
+    
+    local files_to_upload=("$@")
+    local upload_errors=0
+    
+    for file in "${files_to_upload[@]}"; do
+        if [ -f "$file" ]; then
+            local filename=$(basename "$file")
+            local dest_dir="moodle_backups"
+            
+            # Déterminer le sous-dossier selon le type
+            if [[ "$filename" =~ _db_ ]]; then
+                dest_dir="${dest_dir}/database"
+            elif [[ "$filename" =~ _files_ ]]; then
+                dest_dir="${dest_dir}/files"
+            elif [[ "$filename" =~ _code_ ]]; then
+                dest_dir="${dest_dir}/code"
+            elif [[ "$filename" =~ manifest ]]; then
+                dest_dir="${dest_dir}/manifests"
+            fi
+            
+            log_info "📤 Upload: $filename → dropbox:/${dest_dir}/"
+            
+            if docker run --rm \
+                -v "$(dirname "$file")":/backup:ro \
+                -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
+                -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+                rclone/rclone:latest \
+                copy "/backup/$filename" "dropbox:/${dest_dir}/" --progress; then
+                log_info "✅ Upload réussi: $filename"
+            else
+                log_error "❌ Échec upload: $filename"
+                ((upload_errors++))
+            fi
+        fi
+    done
+    
+    if [ $upload_errors -eq 0 ]; then
+        log_info "✅ Tous les fichiers envoyés vers Dropbox"
+        return 0
+    else
+        log_warn "⚠️  $upload_errors fichier(s) non uploadé(s)"
+        return 1
+    fi
 }
 
 # Afficher l'aide
@@ -182,15 +272,22 @@ Usage: $0 [OPTIONS]
 Options:
     --type TYPE        Type de sauvegarde: full, db, files, code (défaut: full)
     --output DIR       Dossier de sortie (défaut: ./backups)
-    --cleanup          Nettoyer les anciennes sauvegardes (>7 jours)
+    --dropbox          Envoyer vers Dropbox après sauvegarde locale
+    --retention DAYS   Jours de rétention locale (défaut: 7)
+    --cleanup          Nettoyer les anciennes sauvegardes
     --help             Afficher cette aide
 
 Exemples:
-    $0                           # Sauvegarde complète
-    $0 --type db                 # Sauvegarde base de données uniquement
-    $0 --type files              # Sauvegarde fichiers uniquement
-    $0 --output /mnt/backups     # Sauvegarde dans un dossier personnalisé
-    $0 --cleanup                 # Nettoyer les anciennes sauvegardes
+    $0                                  # Sauvegarde complète locale
+    $0 --dropbox                        # Sauvegarde complète + upload Dropbox
+    $0 --type db --dropbox              # Base de données vers Dropbox
+    $0 --output /mnt/backups            # Sauvegarde dans un dossier personnalisé
+    $0 --cleanup --retention 14         # Nettoyer (garder 14 jours)
+
+Notes:
+    - Le token Dropbox doit être configuré dans .env
+    - Les sauvegardes locales sont gardées ${RETENTION_DAYS} jours par défaut
+    - Les sauvegardes Dropbox sont gardées 30 jours
 
 EOF
 }
@@ -206,6 +303,14 @@ while [[ $# -gt 0 ]]; do
         --output)
             OUTPUT_DIR="$2"
             mkdir -p "$OUTPUT_DIR"
+            shift 2
+            ;;
+        --dropbox)
+            USE_DROPBOX=true
+            shift
+            ;;
+        --retention)
+            RETENTION_DAYS="$2"
             shift 2
             ;;
         --cleanup)

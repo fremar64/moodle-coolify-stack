@@ -1,5 +1,5 @@
-# Moodle Coolify Stack - Version: 2025-12-07-02
-# Déploiement optimisé pour Coolify (sans healthchecks Docker)
+# Moodle Coolify Stack - Version: 2025-12-10-01 (Fix 504 Timeout)
+# Déploiement optimisé pour Coolify avec healthchecks et ressources augmentées
 version: '3.9'
 
 services:
@@ -11,7 +11,10 @@ services:
       "--character-set-server=utf8mb4",
       "--collation-server=utf8mb4_unicode_ci",
       "--skip-character-set-client-handshake",
-      "--innodb-buffer-pool-size=512M"
+      "--innodb-buffer-pool-size=2G",
+      "--max-connections=200",
+      "--wait-timeout=600",
+      "--interactive-timeout=600"
     ]
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -20,6 +23,13 @@ services:
       - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 3G
+        reservations:
+          memory: 2G
     networks:
       - moodle_net
 
@@ -27,9 +37,15 @@ services:
     image: redis:7-alpine
     container_name: moodle_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+        reservations:
+          memory: 512M
     networks:
       - moodle_net
 
@@ -57,13 +73,36 @@ services:
       - LTI_CLIENT_ID=${LTI_CLIENT_ID}
       - LTI_CLIENT_SECRET=${LTI_CLIENT_SECRET}
       - LTI_PLATFORM_URL=${LTI_PLATFORM_URL}
-      - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-512M}
-      - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-256M}
+      - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-1024M}
+      - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-512M}
       - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
+      - POST_MAX_SIZE=${POST_MAX_SIZE:-512M}
       - TZ=${TIMEZONE:-UTC}
     volumes:
       - ./moodle:/var/www/html
       - moodle_data:/var/www/moodledata
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/login/index.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    labels:
+      # Timeouts Traefik pour éviter 504
+      - "traefik.http.services.moodle.loadbalancer.server.timeout=300s"
+      - "traefik.http.services.moodle.loadbalancer.passhostheader=true"
+      - "traefik.http.services.moodle.loadbalancer.responseforwarding.flushinterval=100ms"
+      # Healthcheck Traefik
+      - "traefik.http.services.moodle.loadbalancer.healthcheck.path=/login/index.php"
+      - "traefik.http.services.moodle.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.moodle.loadbalancer.healthcheck.timeout=10s"
+    deploy:
+      resources:
+        limits:
+          cpus: '3'
+          memory: 3G
+        reservations:
+          memory: 2G
     depends_on:
       - db
       - redis
