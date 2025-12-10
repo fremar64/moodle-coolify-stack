@@ -1,5 +1,5 @@
-# Moodle Coolify Stack - Version: 2025-12-10-01 (Fix 504 Timeout)
-# Déploiement optimisé pour Coolify avec healthchecks et ressources augmentées
+# Moodle Coolify Stack - Version: 2025-12-10-03 (Fix Traefik routing + config.php)
+# Déploiement optimisé pour Coolify avec labels Traefik complets
 version: '3.9'
 
 services:
@@ -23,6 +23,12 @@ services:
       - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -40,6 +46,11 @@ services:
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     deploy:
       resources:
         limits:
@@ -88,10 +99,39 @@ services:
       retries: 3
       start_period: 120s
     labels:
-      # Timeouts Traefik pour éviter 504
+      # ===== LABELS TRAEFIK ESSENTIELS (compatibles Coolify) =====
+      # Activation Traefik
+      - "traefik.enable=true"
+      
+      # Port du service (requis pour Traefik)
+      - "traefik.http.services.moodle.loadbalancer.server.port=80"
+      - "traefik.http.services.moodle.loadbalancer.server.scheme=http"
+      
+      # Configuration routeur HTTP → HTTPS (si Coolify ne le gère pas)
+      - "traefik.http.routers.moodle-http.rule=Host(`ecole-en-ligne.ceredis.net`)"
+      - "traefik.http.routers.moodle-http.entrypoints=web"
+      - "traefik.http.routers.moodle-http.middlewares=redirect-to-https"
+      
+      # Configuration routeur HTTPS principal
+      - "traefik.http.routers.moodle.rule=Host(`ecole-en-ligne.ceredis.net`)"
+      - "traefik.http.routers.moodle.entrypoints=websecure"
+      - "traefik.http.routers.moodle.tls=true"
+      - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
+      
+      # Middleware redirection HTTPS
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      
+      # Middleware buffering pour uploads (512MB)
+      - "traefik.http.middlewares.moodle-buffer.buffering.maxRequestBodyBytes=536870912"
+      - "traefik.http.middlewares.moodle-buffer.buffering.memRequestBodyBytes=104857600"
+      - "traefik.http.routers.moodle.middlewares=moodle-buffer"
+      
+      # Timeouts étendus
       - "traefik.http.services.moodle.loadbalancer.server.timeout=300s"
       - "traefik.http.services.moodle.loadbalancer.passhostheader=true"
       - "traefik.http.services.moodle.loadbalancer.responseforwarding.flushinterval=100ms"
+      
       # Healthcheck Traefik
       - "traefik.http.services.moodle.loadbalancer.healthcheck.path=/login/index.php"
       - "traefik.http.services.moodle.loadbalancer.healthcheck.interval=30s"
@@ -104,8 +144,10 @@ services:
         reservations:
           memory: 2G
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - moodle_net
 
@@ -121,11 +163,14 @@ services:
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
+        echo '[CRON] Exécution Moodle - $(date)';
         php /var/www/html/admin/cli/cron.php;
+        echo '[CRON] Terminé - Prochaine dans ${CRON_INTERVAL_SECONDS:-60}s';
         sleep ${CRON_INTERVAL_SECONDS:-60};
       done"
     depends_on:
-      - moodle
+      moodle:
+        condition: service_healthy
     networks:
       - moodle_net
 
@@ -144,23 +189,33 @@ services:
       - ./backups:/scripts
     entrypoint: >
       sh -c "while true; do
-        echo 'Backup started at $(date)';
-        mysqldump -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle > /scripts/db_backup.sql;
-        rclone copy /data/moodle dropbox:/moodle_backups/files --progress;
-        rclone copy /scripts/db_backup.sql dropbox:/moodle_backups/sql --progress;
-        echo 'Backup done at $(date)';
+        echo '[BACKUP] Démarrage - $(date)';
+        mysqldump -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle > /scripts/db_backup_$(date +%Y%m%d_%H%M%S).sql 2>/dev/null;
+        if [ $? -eq 0 ]; then
+          echo '[BACKUP] Dump SQL réussi';
+          rclone copy /data/moodle dropbox:/moodle_backups/files --progress;
+          rclone copy /scripts/db_backup_*.sql dropbox:/moodle_backups/sql --progress;
+          echo '[BACKUP] Terminé avec succès - $(date)';
+        else
+          echo '[BACKUP] Erreur dump SQL';
+        fi;
         sleep 86400;
       done"
     depends_on:
-      - db
-      - moodle
+      db:
+        condition: service_healthy
+      moodle:
+        condition: service_healthy
     networks:
       - moodle_net
 
 volumes:
   db_data:
+    driver: local
   redis_data:
+    driver: local
   moodle_data:
+    driver: local
 
 networks:
   moodle_net:
