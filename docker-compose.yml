@@ -98,44 +98,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
-    labels:
-      # ===== LABELS TRAEFIK ESSENTIELS (compatibles Coolify) =====
-      # Activation Traefik
-      - "traefik.enable=true"
-      
-      # Port du service (requis pour Traefik)
-      - "traefik.http.services.moodle.loadbalancer.server.port=80"
-      - "traefik.http.services.moodle.loadbalancer.server.scheme=http"
-      
-      # Configuration routeur HTTP → HTTPS (si Coolify ne le gère pas)
-      - "traefik.http.routers.moodle-http.rule=Host(`ecole-en-ligne.ceredis.net`)"
-      - "traefik.http.routers.moodle-http.entrypoints=web"
-      - "traefik.http.routers.moodle-http.middlewares=redirect-to-https"
-      
-      # Configuration routeur HTTPS principal
-      - "traefik.http.routers.moodle.rule=Host(`ecole-en-ligne.ceredis.net`)"
-      - "traefik.http.routers.moodle.entrypoints=websecure"
-      - "traefik.http.routers.moodle.tls=true"
-      - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
-      
-      # Middleware redirection HTTPS
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-      
-      # Middleware buffering pour uploads (512MB)
-      - "traefik.http.middlewares.moodle-buffer.buffering.maxRequestBodyBytes=536870912"
-      - "traefik.http.middlewares.moodle-buffer.buffering.memRequestBodyBytes=104857600"
-      - "traefik.http.routers.moodle.middlewares=moodle-buffer"
-      
-      # Timeouts étendus
-      - "traefik.http.services.moodle.loadbalancer.server.timeout=300s"
-      - "traefik.http.services.moodle.loadbalancer.passhostheader=true"
-      - "traefik.http.services.moodle.loadbalancer.responseforwarding.flushinterval=100ms"
-      
-      # Healthcheck Traefik
-      - "traefik.http.services.moodle.loadbalancer.healthcheck.path=/login/index.php"
-      - "traefik.http.services.moodle.loadbalancer.healthcheck.interval=30s"
-      - "traefik.http.services.moodle.loadbalancer.healthcheck.timeout=10s"
+    # Labels Traefik désactivés - Coolify gère le routage automatiquement via son UI
+    # Pour configurer : Coolify → Application → Settings → Domains
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.services.moodle.loadbalancer.server.port=80"
     deploy:
       resources:
         limits:
