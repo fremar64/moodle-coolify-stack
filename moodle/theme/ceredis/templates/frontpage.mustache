@@ -1,0 +1,59 @@
+{{! Front page template for CEREDIS theme }}
+<section class="ceredis-hero" style="background-image:url('{{#hero_image_custom}}{{hero_image_custom}}{{/hero_image_custom}}{{^hero_image_custom}}{{hero_image}}{{/hero_image_custom}}');">
+  <header class="ceredis-hero-header">
+    <img src="{{#hero_logo_custom}}{{hero_logo_custom}}{{/hero_logo_custom}}{{^hero_logo_custom}}{{hero_logo}}{{/hero_logo_custom}}"
+         alt="CEREDIS" class="ceredis-logo" />
+  </header>
+
+  <div class="ceredis-hero-content">
+    <h1>{{#str}} site_title, theme_ceredis {{/str}}</h1>
+    <p>{{#str}} site_tagline, theme_ceredis {{/str}}</p>
+
+    {{#isguest}}
+      <a class="ceredis-btn btn btn-light" href="{{config.wwwroot}}/login/index.php">
+        {{#str}} login, theme_ceredis {{/str}}
+      </a>
+    {{/isguest}}
+
+    {{#isstudent}}
+      <a class="ceredis-btn btn btn-success" href="{{config.wwwroot}}/my/">
+        {{#str}} my_dashboard, theme_ceredis {{/str}}
+      </a>
+    {{/isstudent}}
+
+    {{#isteacher}}
+      <a class="ceredis-btn btn btn-primary" href="{{config.wwwroot}}/course/management.php">
+        {{#str}} teacher_dashboard, theme_ceredis {{/str}}
+      </a>
+    {{/isteacher}}
+  </div>
+</section>
+
+<section class="container my-5">
+  <h2 class="text-center">{{#str}} choose_level, theme_ceredis {{/str}}</h2>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="level-card p-4 text-center">
+        <h3>{{#str}} level_primary, theme_ceredis {{/str}}</h3>
+        <p>{{#str}} level_primary_desc, theme_ceredis {{/str}}</p>
+        <a class="ceredis-btn btn btn-success" href="{{config.wwwroot}}/course/index.php?categoryid=1">{{#str}} access, theme_ceredis {{/str}}</a>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="level-card p-4 text-center">
+        <h3>{{#str}} level_secondary, theme_ceredis {{/str}}</h3>
+        <p>{{#str}} level_secondary_desc, theme_ceredis {{/str}}</p>
+        <a class="ceredis-btn btn btn-purple" href="{{config.wwwroot}}/course/index.php?categoryid=2">{{#str}} access, theme_ceredis {{/str}}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{#sponsor_enabled}}
+<section class="ceredis-sponsor">
+  <p>{{sponsor_text}}</p>
+  {{#sponsor_link}}
+  <a href="{{sponsor_link}}" target="_blank">{{#str}} sponsor_more, theme_ceredis {{/str}}</a>
+  {{/sponsor_link}}
+</section>
+{{/sponsor_enabled}}
