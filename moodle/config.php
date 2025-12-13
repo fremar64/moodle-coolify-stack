@@ -51,8 +51,10 @@ $CFG->session_redis_lock_expire = 7200;
 
 // Security settings
 $CFG->cookiesecure = true; // HTTPS only
-$CFG->reverseproxy = true; // Behind Traefik
-$CFG->sslproxy = true;
+$CFG->sslproxy = true; // SSL termination at Traefik level
+
+// IMPORTANT: reverseproxy setting removed - caused "reverseproxyabused" error
+// Traefik handles proxy transparently without needing Moodle's reverse proxy mode
 
 // Performance optimizations
 $CFG->enablecompletion = true;
