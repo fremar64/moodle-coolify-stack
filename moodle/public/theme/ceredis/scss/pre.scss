@@ -1,0 +1,42 @@
+// ========================================
+// CEREDIS Theme - Variables SCSS
+// ========================================
+
+// Palette de couleurs CEREDIS
+$ceredis-cyan: #00BCD4;
+$ceredis-navy: #1A3B5C;
+$ceredis-magenta: #E91E63;
+$ceredis-green: #4CAF50;
+$ceredis-blue: #2196F3;
+$ceredis-purple: #9C27B0;
+$ceredis-orange: #FF9800;
+
+// Couleurs utilitaires
+$ceredis-light-bg: #F5F9FC;
+$ceredis-white: #FFFFFF;
+$ceredis-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+$ceredis-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+// Gradients
+$ceredis-gradient-header: linear-gradient(135deg, $ceredis-green 0%, $ceredis-cyan 50%, $ceredis-blue 100%);
+$ceredis-gradient-primary: linear-gradient(135deg, $ceredis-cyan, $ceredis-blue);
+$ceredis-gradient-secondary: linear-gradient(135deg, $ceredis-purple, $ceredis-magenta);
+
+// Typography
+$ceredis-font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+
+// Border radius
+$ceredis-radius-sm: 10px;
+$ceredis-radius-md: 15px;
+$ceredis-radius-lg: 20px;
+$ceredis-radius-xl: 50px;
+
+// Spacing
+$ceredis-spacing-xs: 10px;
+$ceredis-spacing-sm: 20px;
+$ceredis-spacing-md: 30px;
+$ceredis-spacing-lg: 40px;
+$ceredis-spacing-xl: 60px;
+
+// Transitions
+$ceredis-transition: all 0.3s ease;
