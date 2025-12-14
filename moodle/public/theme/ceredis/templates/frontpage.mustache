@@ -1,0 +1,315 @@
+{{!
+    CEREDIS – Frontpage Template
+    Page d'accueil personnalisée pour l'École en Ligne CEREDIS
+}}
+
+{{! Hero Section }}
+<section class="ceredis-hero">
+    <div class="ceredis-hero-overlay"></div>
+    
+    <header class="ceredis-hero-header">
+        <img
+            src="{{config.wwwroot}}/theme/ceredis/pix/ceredis.png"
+            alt="CEREDIS"
+            class="ceredis-logo"
+        />
+    </header>
+    
+    <div class="ceredis-hero-content">
+        <h1 class="ceredis-hero-title">
+            {{#str}} platform_title, theme_ceredis {{/str}}
+        </h1>
+        <p class="ceredis-hero-tagline">
+            {{#str}} platform_tagline, theme_ceredis {{/str}}
+        </p>
+        
+        <div class="ceredis-hero-actions">
+            {{#loggedin}}
+                <a class="btn btn-success ceredis-btn"
+                   href="{{config.wwwroot}}/my/">
+                    🚀 {{#str}} my_courses, theme_ceredis {{/str}}
+                </a>
+                <a class="btn btn-primary ceredis-btn"
+                   href="{{config.wwwroot}}/my/">
+                    📊 {{#str}} view_progress, theme_ceredis {{/str}}
+                </a>
+            {{/loggedin}}
+            {{^loggedin}}
+                <a class="btn btn-success ceredis-btn"
+                   href="{{config.wwwroot}}/course/">
+                    🚀 {{#str}} start_learning, theme_ceredis {{/str}}
+                </a>
+                <a class="btn btn-light ceredis-btn"
+                   href="{{config.wwwroot}}/login/index.php">
+                    {{#str}} login, core {{/str}}
+                </a>
+            {{/loggedin}}
+        </div>
+    </div>
+</section>
+
+{{! Content Section }}
+<section class="ceredis-front-content">
+    
+    {{! Welcome Message }}
+    <div class="ceredis-welcome">
+        <h2 class="ceredis-welcome-title">
+            ✨ {{#str}} welcome_title, theme_ceredis {{/str}} ☀️
+        </h2>
+        <p class="ceredis-welcome-text">
+            {{#str}} welcome_text, theme_ceredis {{/str}}
+        </p>
+    </div>
+    
+    {{! Category Cards - 4 catégories }}
+    <div class="ceredis-categories">
+        {{! Rallye scolaire }}
+        <div class="ceredis-category-card rally">
+            <div class="ceredis-category-header"></div>
+            <div class="ceredis-category-body">
+                <div class="ceredis-category-icon">🏁</div>
+                <h3 class="ceredis-category-title">
+                    {{#str}} category_rally, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-category-desc">
+                    {{#str}} category_rally_desc, theme_ceredis {{/str}}
+                </p>
+                <a href="{{config.wwwroot}}/course/index.php?categoryid=4" 
+                   class="btn btn-warning w-100 ceredis-category-btn">
+                    🏁 {{#str}} access_rally, theme_ceredis {{/str}}
+                </a>
+            </div>
+        </div>
+        
+        {{! Éducation maternelle }}
+        <div class="ceredis-category-card preschool">
+            <div class="ceredis-category-header"></div>
+            <div class="ceredis-category-body">
+                <div class="ceredis-category-icon">🧸</div>
+                <h3 class="ceredis-category-title">
+                    {{#str}} category_preschool, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-category-desc">
+                    {{#str}} category_preschool_desc, theme_ceredis {{/str}}
+                </p>
+                <a href="{{config.wwwroot}}/course/index.php?categoryid=2" 
+                   class="btn btn-info w-100 ceredis-category-btn">
+                    🧸 {{#str}} access_preschool, theme_ceredis {{/str}}
+                </a>
+            </div>
+        </div>
+        
+        {{! École primaire }}
+        <div class="ceredis-category-card primary">
+            <div class="ceredis-category-header"></div>
+            <div class="ceredis-category-body">
+                <div class="ceredis-category-icon">🎒</div>
+                <h3 class="ceredis-category-title">
+                    {{#str}} category_primary, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-category-desc">
+                    {{#str}} category_primary_desc, theme_ceredis {{/str}}
+                </p>
+                <a href="{{config.wwwroot}}/course/index.php?categoryid=3" 
+                   class="btn btn-success w-100 ceredis-category-btn">
+                    🎒 {{#str}} access_primary, theme_ceredis {{/str}}
+                </a>
+            </div>
+        </div>
+        
+        {{! Collège }}
+        <div class="ceredis-category-card secondary">
+            <div class="ceredis-category-header"></div>
+            <div class="ceredis-category-body">
+                <div class="ceredis-category-icon">🎓</div>
+                <h3 class="ceredis-category-title">
+                    {{#str}} category_secondary, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-category-desc">
+                    {{#str}} category_secondary_desc, theme_ceredis {{/str}}
+                </p>
+                <a href="{{config.wwwroot}}/course/index.php?categoryid=5" 
+                   class="btn btn-primary w-100 ceredis-category-btn">
+                    🎓 {{#str}} access_secondary, theme_ceredis {{/str}}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {{! Sponsors Carousel }}
+    <div class="ceredis-sponsors">
+        <h2 class="ceredis-sponsors-title">
+            🤝 {{#str}} sponsors_title, theme_ceredis {{/str}}
+        </h2>
+        
+        <div class="ceredis-sponsors-carousel">
+            <div class="ceredis-sponsors-track">
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor1.png" alt="École Primaire Les Tilleuls">
+                    </div>
+                    <p class="ceredis-sponsor-name">École Primaire<br>Les Tilleuls</p>
+                </div>
+                
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor2.png" alt="Université Paris-Saclay">
+                    </div>
+                    <p class="ceredis-sponsor-name">Université<br>Paris-Saclay</p>
+                </div>
+                
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor3.png" alt="CNRS Recherche">
+                    </div>
+                    <p class="ceredis-sponsor-name">CNRS<br>Recherche</p>
+                </div>
+                
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor4.png" alt="Innovation Pédagogique">
+                    </div>
+                    <p class="ceredis-sponsor-name">Innovation<br>Pédagogique</p>
+                </div>
+                
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor5.png" alt="Fondation Éducation">
+                    </div>
+                    <p class="ceredis-sponsor-name">Fondation<br>Éducation</p>
+                </div>
+                
+                {{! Duplicate for infinite scroll effect }}
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor1.png" alt="École Primaire Les Tilleuls">
+                    </div>
+                    <p class="ceredis-sponsor-name">École Primaire<br>Les Tilleuls</p>
+                </div>
+                
+                <div class="ceredis-sponsor-item">
+                    <div class="ceredis-sponsor-logo">
+                        <img src="{{config.wwwroot}}/theme/ceredis/pix/sponsors/sponsor2.png" alt="Université Paris-Saclay">
+                    </div>
+                    <p class="ceredis-sponsor-name">Université<br>Paris-Saclay</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {{! Features Section }}
+    <div class="ceredis-features">
+        <h2 class="text-center mb-4">⭐ Ce qui rend notre plateforme unique</h2>
+        
+        <div class="ceredis-features-grid">
+            <div class="ceredis-feature">
+                <span class="ceredis-feature-icon">🎮</span>
+                <h3 class="ceredis-feature-title">
+                    {{#str}} feature_gamification, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-feature-desc">
+                    {{#str}} feature_gamification_desc, theme_ceredis {{/str}}
+                </p>
+            </div>
+            
+            <div class="ceredis-feature">
+                <span class="ceredis-feature-icon">📈</span>
+                <h3 class="ceredis-feature-title">
+                    {{#str}} feature_progress, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-feature-desc">
+                    {{#str}} feature_progress_desc, theme_ceredis {{/str}}
+                </p>
+            </div>
+            
+            <div class="ceredis-feature">
+                <span class="ceredis-feature-icon">👨‍🏫</span>
+                <h3 class="ceredis-feature-title">
+                    {{#str}} feature_support, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-feature-desc">
+                    {{#str}} feature_support_desc, theme_ceredis {{/str}}
+                </p>
+            </div>
+            
+            <div class="ceredis-feature">
+                <span class="ceredis-feature-icon">🏆</span>
+                <h3 class="ceredis-feature-title">
+                    {{#str}} feature_rewards, theme_ceredis {{/str}}
+                </h3>
+                <p class="ceredis-feature-desc">
+                    {{#str}} feature_rewards_desc, theme_ceredis {{/str}}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    {{! Dashboard or Guest Message }}
+    {{#loggedin}}
+        <div class="ceredis-dashboard">
+            {{{output.main_content}}}
+        </div>
+    {{/loggedin}}
+    {{^loggedin}}
+        <div class="ceredis-guest-message">
+            <p>{{#str}} guest_message, theme_ceredis {{/str}}</p>
+        </div>
+    {{/loggedin}}
+    
+</section>
+
+{{! Footer }}
+<footer class="ceredis-footer">
+    <div class="ceredis-footer-content">
+        <div class="ceredis-footer-grid">
+            {{! Colonne 1 - À propos }}
+            <div class="ceredis-footer-column">
+                <h4 class="ceredis-footer-heading">{{#str}} footer_about, theme_ceredis {{/str}}</h4>
+                <p class="ceredis-footer-text">
+                    {{#str}} footer_about_text, theme_ceredis {{/str}}
+                </p>
+            </div>
+            
+            {{! Colonne 2 - Liens rapides }}
+            <div class="ceredis-footer-column">
+                <h4 class="ceredis-footer-heading">{{#str}} footer_links, theme_ceredis {{/str}}</h4>
+                <ul class="ceredis-footer-links">
+                    <li><a href="{{config.wwwroot}}/course/">{{#str}} footer_courses, theme_ceredis {{/str}}</a></li>
+                    <li><a href="{{config.wwwroot}}/calendar/view.php">{{#str}} footer_calendar, theme_ceredis {{/str}}</a></li>
+                    <li><a href="{{config.wwwroot}}/badges/">{{#str}} footer_badges, theme_ceredis {{/str}}</a></li>
+                    <li><a href="{{config.wwwroot}}/message/">{{#str}} footer_messages, theme_ceredis {{/str}}</a></li>
+                </ul>
+            </div>
+            
+            {{! Colonne 3 - Support }}
+            <div class="ceredis-footer-column">
+                <h4 class="ceredis-footer-heading">{{#str}} footer_support, theme_ceredis {{/str}}</h4>
+                <ul class="ceredis-footer-links">
+                    <li><a href="#aide">{{#str}} footer_help, theme_ceredis {{/str}}</a></li>
+                    <li><a href="#contact">{{#str}} footer_contact, theme_ceredis {{/str}}</a></li>
+                    <li><a href="#faq">{{#str}} footer_faq, theme_ceredis {{/str}}</a></li>
+                    <li><a href="#confidentialite">{{#str}} footer_privacy, theme_ceredis {{/str}}</a></li>
+                </ul>
+            </div>
+            
+            {{! Colonne 4 - Contact }}
+            <div class="ceredis-footer-column">
+                <h4 class="ceredis-footer-heading">{{#str}} footer_contact_us, theme_ceredis {{/str}}</h4>
+                <p class="ceredis-footer-text">
+                    <strong>CEREDIS</strong><br>
+                    📧 contact@ceredis.net<br>
+                    🌐 www.ceredis.net
+                </p>
+            </div>
+        </div>
+        
+        {{! Copyright }}
+        <div class="ceredis-footer-bottom">
+            <p class="ceredis-footer-copyright">
+                © 2025 CEREDIS - {{#str}} footer_tagline, theme_ceredis {{/str}}
+                <br>
+                <small>{{#str}} footer_developed, theme_ceredis {{/str}}</small>
+            </p>
+        </div>
+    </div>
+</footer>
