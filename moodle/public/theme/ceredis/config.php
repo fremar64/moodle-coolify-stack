@@ -16,8 +16,8 @@ $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->requiredblocks = '';
 $THEME->addblockposition = BLOCK_ADDBLOCK_POSITION_FLATNAV;
 
-// Feuilles de style personnalisées
-$THEME->sheets = ['ceredis'];
+// Les styles sont gérés via SCSS (voir lib.php)
+// $THEME->sheets = ['ceredis']; // Désactivé - on utilise uniquement SCSS
 
 // Régions de blocs - TOUS LES LAYOUTS NÉCESSAIRES
 $THEME->layouts = [
