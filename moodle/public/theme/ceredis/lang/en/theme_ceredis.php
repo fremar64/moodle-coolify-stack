@@ -40,6 +40,15 @@ $string['category_secondary'] = 'Middle School';
 $string['category_secondary_desc'] = 'Grades 6-9: deepening and excellence';
 $string['access_secondary'] = 'Access Middle School';
 
+// Courses (additional cards)
+$string['course_literacy'] = 'Literacy Course';
+$string['course_literacy_desc'] = 'Strengthen reading, writing, and essential basics';
+$string['access_literacy'] = 'Open course';
+
+$string['course_trainers'] = 'Trainer Training';
+$string['course_trainers_desc'] = 'Resources and learning paths to support teachers';
+$string['access_trainers'] = 'Open training';
+
 // Subjects
 $string['subject_french'] = 'French';
 $string['subject_math'] = 'Mathematics';

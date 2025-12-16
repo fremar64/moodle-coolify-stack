@@ -240,6 +240,14 @@
     .secondary & {
         background: linear-gradient(90deg, $ceredis-blue, $ceredis-purple);
     }
+
+    .literacy & {
+        background: linear-gradient(90deg, $ceredis-navy, $ceredis-cyan);
+    }
+
+    .trainers & {
+        background: linear-gradient(90deg, $ceredis-purple, $ceredis-blue);
+    }
 }
 
 .ceredis-category-body {
@@ -281,6 +289,18 @@
         background: $ceredis-gradient-secondary;
         box-shadow: 0 10px 25px rgba(156, 39, 176, 0.3);
         animation-delay: 0.9s;
+    }
+
+    .literacy & {
+        background: linear-gradient(135deg, $ceredis-navy, $ceredis-cyan);
+        box-shadow: 0 10px 25px rgba(26, 59, 92, 0.3);
+        animation-delay: 1.2s;
+    }
+
+    .trainers & {
+        background: linear-gradient(135deg, $ceredis-purple, $ceredis-blue);
+        box-shadow: 0 10px 25px rgba(33, 150, 243, 0.25);
+        animation-delay: 1.5s;
     }
 }
 

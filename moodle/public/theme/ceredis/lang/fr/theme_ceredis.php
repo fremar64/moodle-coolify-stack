@@ -40,6 +40,15 @@ $string['category_secondary'] = 'Collège';
 $string['category_secondary_desc'] = 'De la 6ème à la 3ème : approfondissement et excellence';
 $string['access_secondary'] = 'Accéder au collège';
 
+// Courses (additional cards)
+$string['course_literacy'] = 'Cours d\'alphabétisation';
+$string['course_literacy_desc'] = 'Renforcer la lecture, l\'écriture et les bases essentielles';
+$string['access_literacy'] = 'Accéder au cours';
+
+$string['course_trainers'] = 'Formation des formateurs';
+$string['course_trainers_desc'] = 'Ressources et parcours pour accompagner les enseignants';
+$string['access_trainers'] = 'Accéder à la formation';
+
 // Subjects
 $string['subject_french'] = 'Français';
 $string['subject_math'] = 'Mathématiques';
