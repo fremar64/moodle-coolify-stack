@@ -10,13 +10,19 @@ defined('MOODLE_INTERNAL') || die();
 
 $bodyattributes = $OUTPUT->body_attributes();
 
+$primary = new core\navigation\output\primary($PAGE);
+$renderer = $PAGE->get_renderer('core');
+$primarymenu = $primary->export_for_template($renderer);
+
 $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID)]),
     'output' => $OUTPUT,
     'bodyattributes' => $bodyattributes,
     'loggedin' => isloggedin() && !isguestuser(),
+    'primarymoremenu' => $primarymenu['moremenu'],
+    'mobileprimarynav' => $primarymenu['mobileprimarynav'],
+    'usermenu' => $primarymenu['user'],
+    'langmenu' => $primarymenu['lang'],
 ];
 
-echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('theme_ceredis/frontpage', $templatecontext);
-echo $OUTPUT->footer();
