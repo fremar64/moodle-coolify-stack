@@ -17,4 +17,6 @@ $templatecontext = [
     'loggedin' => isloggedin() && !isguestuser(),
 ];
 
+echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('theme_ceredis/frontpage', $templatecontext);
+echo $OUTPUT->footer();
