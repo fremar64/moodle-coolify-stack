@@ -13,12 +13,26 @@
     text-align: center;
     position: relative;
     overflow: hidden;
+    border-radius: $ceredis-radius-lg;
+    box-shadow: $ceredis-shadow-soft;
     min-height: 400px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     margin: 0 0 $ceredis-spacing-lg 0;
+
+    // Liseré supérieur, même “signature” que les cartes de catégories.
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(90deg, $ceredis-green, $ceredis-cyan);
+        z-index: 2;
+    }
 }
 
 .ceredis-hero-overlay {
