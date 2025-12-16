@@ -45,7 +45,7 @@ $string['category_literacy'] = 'Alphabétisation';
 $string['category_literacy_desc'] = 'Cours d\'alphabétisation fonctionnelle pour les adultes';
 $string['access_literacy'] = 'Accéder au cours';
 
-$string['category_trainers'] = 'Formation des formateurs';
+$string['category_trainers'] = 'Formation continue';
 $string['category_trainers_desc'] = 'Sessions de formation continue pour les enseignants';
 $string['access_trainers'] = 'Accéder à la formation';
 
