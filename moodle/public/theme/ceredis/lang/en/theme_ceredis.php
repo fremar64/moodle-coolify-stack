@@ -41,12 +41,12 @@ $string['category_secondary_desc'] = 'Grades 6-9: deepening and excellence';
 $string['access_secondary'] = 'Access Middle School';
 
 // Courses (additional cards)
-$string['course_literacy'] = 'Literacy Course';
-$string['course_literacy_desc'] = 'Strengthen reading, writing, and essential basics';
+$string['category_literacy'] = 'Literacy';
+$string['category_literacy_desc'] = 'Functional literacy course for adults';
 $string['access_literacy'] = 'Open course';
 
-$string['course_trainers'] = 'Trainer Training';
-$string['course_trainers_desc'] = 'Resources and learning paths to support teachers';
+$string['category_trainers'] = 'Trainer Training';
+$string['category_trainers_desc'] = 'Continuing education sessions for teachers';
 $string['access_trainers'] = 'Open training';
 
 // Subjects

@@ -137,6 +137,14 @@ $string['category_primary_desc'] = 'Du CP au CM2 : lectures, calculs, découvert
 // Collège
 $string['category_secondary'] = 'Collège';
 $string['category_secondary_desc'] = 'De la 6ème à la 3ème : approfondissement et excellence';
+
+// Alphabétisation
+$string['category_literacy'] = 'Alphabétisation';
+$string['category_literacy_desc'] = 'Cours d\'alphabétisation fonctionnelle pour les adultes';
+
+// Formation des formateurs
+$string['category_trainers'] = 'Formation des formateurs';
+$string['category_trainers_desc'] = 'Sessions de formation continue pour les enseignants';
 ```
 
 ---
