@@ -130,11 +130,19 @@ services:
       - moodle_data:/var/www/moodledata
     entrypoint: >
       sh -c "while true; do
+        date +%s > /tmp/cron_heartbeat;
         echo '[CRON] Exécution Moodle - $(date)';
         php /var/www/html/admin/cli/cron.php;
+        date +%s > /tmp/cron_heartbeat;
         echo '[CRON] Terminé - Prochaine dans ${CRON_INTERVAL_SECONDS:-60}s';
         sleep ${CRON_INTERVAL_SECONDS:-60};
       done"
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/cron_heartbeat && [ $(( $(date +%s) - $(cat /tmp/cron_heartbeat) )) -lt 300 ]"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       moodle:
         condition: service_healthy
@@ -156,6 +164,7 @@ services:
       - ./backups:/scripts
     entrypoint: >
       sh -c "while true; do
+        date +%s > /tmp/backup_heartbeat;
         echo '[BACKUP] Démarrage - $(date)';
         mysqldump -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle > /scripts/db_backup_$(date +%Y%m%d_%H%M%S).sql 2>/dev/null;
         if [ $? -eq 0 ]; then
@@ -166,8 +175,15 @@ services:
         else
           echo '[BACKUP] Erreur dump SQL';
         fi;
+        date +%s > /tmp/backup_heartbeat;
         sleep 86400;
       done"
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/backup_heartbeat && [ $(( $(date +%s) - $(cat /tmp/backup_heartbeat) )) -lt 90000 ]"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 2m
     depends_on:
       db:
         condition: service_healthy
