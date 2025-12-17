@@ -2,8 +2,7 @@
     @template theme_ceredis/frontpage
 
     Layout complet pour la page d'accueil CEREDIS.
-    IMPORTANT: ce template doit contenir {{{ output.main_content }}} afin que Moodle
-    puisse découper correctement le rendu (header/footer).
+    IMPORTANT: ce template doit contenir le contenu principal (main content).
 }}
 
 {{> theme_boost/head }}
@@ -301,7 +300,7 @@
     {{! Dashboard or Guest Message }}
     {{#loggedin}}
         <div class="ceredis-dashboard">
-            {{{output.main_content}}}
+            {{{maincontent}}}
         </div>
     {{/loggedin}}
     {{^loggedin}}

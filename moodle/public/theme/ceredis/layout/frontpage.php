@@ -14,10 +14,13 @@ $primary = new core\navigation\output\primary($PAGE);
 $renderer = $PAGE->get_renderer('core');
 $primarymenu = $primary->export_for_template($renderer);
 
+$maincontent = $OUTPUT->main_content();
+
 $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID)]),
     'output' => $OUTPUT,
     'bodyattributes' => $bodyattributes,
+    'maincontent' => $maincontent,
     'loggedin' => isloggedin() && !isguestuser(),
     'primarymoremenu' => $primarymenu['moremenu'],
     'mobileprimarynav' => $primarymenu['mobileprimarynav'],
