@@ -304,6 +304,9 @@
         </div>
     {{/loggedin}}
     {{^loggedin}}
+        <div class="d-none">
+            {{{maincontent}}}
+        </div>
         <div class="ceredis-guest-message">
             <p>{{#str}} guest_message, theme_ceredis {{/str}}</p>
         </div>
