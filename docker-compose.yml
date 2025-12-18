@@ -170,6 +170,8 @@ services:
       - DB_USER=moodle
       - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
       - DROPBOX_PATH_BASE=${DROPBOX_PATH_BASE:-dropbox:/moodle_backups}
+      - LOCAL_SQL_RETENTION_DAYS=${LOCAL_SQL_RETENTION_DAYS:-14}
+      - SQL_REMOTE_RETENTION_DAYS=${SQL_REMOTE_RETENTION_DAYS:-30}
       - TZ=${TIMEZONE:-UTC}
     volumes:
       - moodle_data:/data/moodle

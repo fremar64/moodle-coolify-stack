@@ -186,15 +186,24 @@ Backup done at Thu Dec  7 00:05:23 UTC 2025
 ### Sauvegardes manuelles on-demand
 
 ```bash
-# Sauvegarde manuelle immédiate
-docker exec moodle_backup sh -c "
-  echo 'Manual backup started';
-  mysqldump -h db -u moodle -p\${MYSQL_PASSWORD} moodle > /scripts/db_backup_manual.sql;
-  rclone copy /data/moodle dropbox:/moodle_backups/manual/files --progress;
-  rclone copy /scripts/db_backup_manual.sql dropbox:/moodle_backups/manual/sql --progress;
-  echo 'Manual backup done';
-"
+# Sauvegarde immédiate (force un cycle maintenant)
+docker exec moodle_backup backup-once.sh
+
+# Suivre en direct
+docker logs -f moodle_backup
 ```
+
+### Rétention des dumps SQL
+
+Par défaut :
+
+- Local (dans ./backups): suppression des fichiers `db_backup_*.sql` / `db_backup_*.err` plus vieux que 14 jours
+- Dropbox (dans `.../moodle_backups/sql`): suppression des dumps plus vieux que 30 jours
+
+Ces valeurs sont configurables via les variables d’environnement Coolify :
+
+- `LOCAL_SQL_RETENTION_DAYS`
+- `SQL_REMOTE_RETENTION_DAYS`
 
 ### Restauration depuis une sauvegarde
 
