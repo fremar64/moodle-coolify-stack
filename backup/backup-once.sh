@@ -24,6 +24,23 @@ DB_PASS="${MOODLE_DB_PASSWORD:-${MYSQL_PASSWORD:-}}"
 
 DROPBOX_PATH_BASE="${DROPBOX_PATH_BASE:-dropbox:/moodle_backups}"
 
+# Dropbox token normalisation
+# - Coolify peut fournir DROPBOX_TOKEN comme un token brut (ex: "sl.u....")
+# - rclone (backend dropbox) attend un JSON dans RCLONE_CONFIG_DROPBOX_TOKEN
+DROPBOX_TOKEN_RAW="${DROPBOX_TOKEN:-${RCLONE_CONFIG_DROPBOX_TOKEN:-}}"
+
+export RCLONE_CONFIG_DROPBOX_TYPE="dropbox"
+if [ -n "${DROPBOX_TOKEN_RAW}" ]; then
+  case "${DROPBOX_TOKEN_RAW}" in
+    \{*)
+      export RCLONE_CONFIG_DROPBOX_TOKEN="${DROPBOX_TOKEN_RAW}"
+      ;;
+    *)
+      export RCLONE_CONFIG_DROPBOX_TOKEN="$(printf '{"access_token":"%s","token_type":"bearer","expiry":"0001-01-01T00:00:00Z"}' "${DROPBOX_TOKEN_RAW}")"
+      ;;
+  esac
+fi
+
 # Rétention
 LOCAL_SQL_RETENTION_DAYS="${LOCAL_SQL_RETENTION_DAYS:-14}"
 SQL_REMOTE_RETENTION_DAYS="${SQL_REMOTE_RETENTION_DAYS:-30}"
@@ -33,7 +50,7 @@ if [ -z "${DB_PASS}" ]; then
   warn "Mot de passe DB manquant: définir MOODLE_DB_PASSWORD (ou MYSQL_PASSWORD)"
 fi
 
-if [ -z "${DROPBOX_TOKEN:-}" ]; then
+if [ -z "${DROPBOX_TOKEN_RAW}" ]; then
   warn "DROPBOX_TOKEN absent: aucun upload Dropbox ne sera fait"
 fi
 
@@ -65,7 +82,7 @@ else
 fi
 
 # Upload Dropbox
-if [ -n "${DROPBOX_TOKEN:-}" ] && command -v rclone >/dev/null 2>&1; then
+if [ -n "${DROPBOX_TOKEN_RAW}" ] && command -v rclone >/dev/null 2>&1; then
   if ! rclone lsf "dropbox:" >/dev/null 2>&1; then
     warn "Connexion Dropbox impossible (token invalide/expiré ?). Vérifier DROPBOX_TOKEN."
   else
