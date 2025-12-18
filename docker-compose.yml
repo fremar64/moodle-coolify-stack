@@ -157,41 +157,24 @@ services:
       - moodle_net
 
   backup:
-    image: rclone/rclone:latest
+    build:
+      context: ./backup
     container_name: moodle_backup
     restart: unless-stopped
     environment:
       - RCLONE_CONFIG_DROPBOX_TYPE=dropbox
       - RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}
-      - MYSQL_PASSWORD=${MOODLE_DB_PASSWORD}
+      - MOODLE_DB_PASSWORD=${MOODLE_DB_PASSWORD}
+      - DB_HOST=db
+      - DB_NAME=moodle
+      - DB_USER=moodle
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
+      - DROPBOX_PATH_BASE=${DROPBOX_PATH_BASE:-dropbox:/moodle_backups}
       - TZ=${TIMEZONE:-UTC}
     volumes:
       - moodle_data:/data/moodle
       - db_data:/data/db
       - ./backups:/scripts
-    entrypoint: >
-      sh -c "while true; do
-        date +%s > /tmp/backup_heartbeat;
-        echo '[BACKUP] Démarrage - $(date)';
-        TS=$(date +%Y%m%d_%H%M%S);
-        mysqldump \
-          --single-transaction \
-          --quick \
-          --skip-lock-tables \
-          -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle \
-          > /scripts/db_backup_${TS}.sql 2> /scripts/db_backup_${TS}.err;
-        if [ $? -eq 0 ]; then
-          echo '[BACKUP] Dump SQL réussi';
-          rclone copy /data/moodle dropbox:/moodle_backups/files --progress;
-          rclone copy /scripts/db_backup_*.sql dropbox:/moodle_backups/sql --progress;
-          rclone copy /scripts/db_backup_*.err dropbox:/moodle_backups/sql --progress;
-          echo '[BACKUP] Terminé avec succès - $(date)';
-        else
-          echo '[BACKUP] Erreur dump SQL';
-        fi;
-        date +%s > /tmp/backup_heartbeat;
-        sleep 86400;
-      done"
     healthcheck:
       test: ["CMD-SHELL", "test -f /tmp/backup_heartbeat && [ $(( $(date +%s) - $(cat /tmp/backup_heartbeat) )) -lt 90000 ]"]
       interval: 1m
