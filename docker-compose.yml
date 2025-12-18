@@ -86,7 +86,7 @@ services:
       - LTI_PLATFORM_URL=${LTI_PLATFORM_URL}
       - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-1024M}
       - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE:-512M}
-      - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-300}
+      - MAX_EXECUTION_TIME=${MAX_EXECUTION_TIME:-600}
       - POST_MAX_SIZE=${POST_MAX_SIZE:-512M}
       - TZ=${TIMEZONE:-UTC}
     volumes:
@@ -98,11 +98,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
-    # Labels Traefik désactivés - Coolify gère le routage automatiquement via son UI
+    # Labels Traefik désactivés - Coolify gère le routage automatiquement via son UI.
     # Pour configurer : Coolify → Application → Settings → Domains
+    #
+    # Si vous gérez le routage via labels (au lieu de l'UI Coolify), vous pouvez activer
+    # ce bloc et adapter le nom du service/routeur selon votre instance Traefik.
+    # NOTE: éviter les serversTransport ici (a déjà causé des "no available server").
     # labels:
     #   - "traefik.enable=true"
     #   - "traefik.http.services.moodle.loadbalancer.server.port=80"
+    #   - "traefik.http.services.moodle.loadbalancer.healthcheck.path=/login/index.php"
+    #   - "traefik.http.services.moodle.loadbalancer.healthcheck.interval=30s"
+    #   - "traefik.http.services.moodle.loadbalancer.healthcheck.timeout=10s"
     deploy:
       resources:
         limits:
@@ -166,11 +173,18 @@ services:
       sh -c "while true; do
         date +%s > /tmp/backup_heartbeat;
         echo '[BACKUP] Démarrage - $(date)';
-        mysqldump -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle > /scripts/db_backup_$(date +%Y%m%d_%H%M%S).sql 2>/dev/null;
+        TS=$(date +%Y%m%d_%H%M%S);
+        mysqldump \
+          --single-transaction \
+          --quick \
+          --skip-lock-tables \
+          -h db -u moodle -p${MOODLE_DB_PASSWORD} moodle \
+          > /scripts/db_backup_${TS}.sql 2> /scripts/db_backup_${TS}.err;
         if [ $? -eq 0 ]; then
           echo '[BACKUP] Dump SQL réussi';
           rclone copy /data/moodle dropbox:/moodle_backups/files --progress;
           rclone copy /scripts/db_backup_*.sql dropbox:/moodle_backups/sql --progress;
+          rclone copy /scripts/db_backup_*.err dropbox:/moodle_backups/sql --progress;
           echo '[BACKUP] Terminé avec succès - $(date)';
         else
           echo '[BACKUP] Erreur dump SQL';
