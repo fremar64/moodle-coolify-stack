@@ -211,7 +211,7 @@ Ces valeurs sont configurables via les variables d’environnement Coolify :
 
 ```bash
 # Depuis Dropbox
-rclone copy dropbox:/moodle_backups/sql/db_backup.sql ./
+rclone copy dropbox:moodle_backups/sql/db_backup.sql ./
 
 # Restaurer
 docker exec -i moodle_db mysql -u root -p${MYSQL_ROOT_PASSWORD} moodle < db_backup.sql
@@ -226,7 +226,7 @@ docker run --rm \
   -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
   -e RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN} \
   rclone/rclone \
-  copy dropbox:/moodle_backups/files /data --progress
+  copy dropbox:moodle_backups/files /data --progress
 ```
 
 ### Configurer Dropbox (première fois)

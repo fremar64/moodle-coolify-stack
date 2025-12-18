@@ -173,18 +173,6 @@ EOF
         upload_to_dropbox "${backup_files[@]}"
     fi
 }
-Files: $(du -h "$FILES_FILE" | cut -f1)
-Code: $(du -h "$CODE_FILE" | cut -f1)
-Total: $(du -ch "$DB_FILE" "$FILES_FILE" "$CODE_FILE" | tail -1 | cut -f1)
-
-Checksums (SHA256):
--------------------
-$(sha256sum "$DB_FILE" "$FILES_FILE" "$CODE_FILE")
-EOF
-    
-    log_info "✅ Manifest créé: $MANIFEST_FILE"
-    echo ""
-}
 
 # Nettoyage des anciennes sauvegardes
 cleanup_old_backups() {
@@ -206,7 +194,7 @@ cleanup_old_backups() {
             -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
             -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
             rclone/rclone:latest \
-            delete dropbox:/moodle_backups --min-age 30d --rmdirs || true
+            delete dropbox:moodle_backups --min-age 30d --rmdirs || true
         log_info "✅ Nettoyage Dropbox terminé"
     fi
 }
@@ -239,14 +227,14 @@ upload_to_dropbox() {
                 dest_dir="${dest_dir}/manifests"
             fi
             
-            log_info "📤 Upload: $filename → dropbox:/${dest_dir}/"
+            log_info "📤 Upload: $filename → dropbox:${dest_dir}/"
             
             if docker run --rm \
                 -v "$(dirname "$file")":/backup:ro \
                 -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
                 -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
                 rclone/rclone:latest \
-                copy "/backup/$filename" "dropbox:/${dest_dir}/" --progress; then
+                copy "/backup/$filename" "dropbox:${dest_dir}/" --progress; then
                 log_info "✅ Upload réussi: $filename"
             else
                 log_error "❌ Échec upload: $filename"

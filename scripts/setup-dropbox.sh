@@ -76,10 +76,10 @@ docker run --rm \
     -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
     -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
     rclone/rclone:latest \
-    mkdir -p dropbox:/moodle_backups/database \
-    dropbox:/moodle_backups/files \
-    dropbox:/moodle_backups/code \
-    dropbox:/moodle_backups/manifests
+    mkdir -p dropbox:moodle_backups/database \
+    dropbox:moodle_backups/files \
+    dropbox:moodle_backups/code \
+    dropbox:moodle_backups/manifests
 
 log_info "✅ Structure créée dans Dropbox"
 

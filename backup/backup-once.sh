@@ -22,7 +22,7 @@ DB_NAME="${DB_NAME:-moodle}"
 DB_USER="${DB_USER:-moodle}"
 DB_PASS="${MOODLE_DB_PASSWORD:-${MYSQL_PASSWORD:-}}"
 
-DROPBOX_PATH_BASE="${DROPBOX_PATH_BASE:-dropbox:/moodle_backups}"
+DROPBOX_PATH_BASE="${DROPBOX_PATH_BASE:-dropbox:moodle_backups}"
 
 # Dropbox token normalisation
 # - Coolify peut fournir DROPBOX_TOKEN comme un token brut (ex: "sl.u....")
