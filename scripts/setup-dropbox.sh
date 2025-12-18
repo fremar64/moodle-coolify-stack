@@ -54,12 +54,18 @@ if [ -z "$DROPBOX_TOKEN" ] || [ "$DROPBOX_TOKEN" = '{"access_token":"VOTRE_TOKEN
     exit 1
 fi
 
+# Normaliser le token pour rclone (Dropbox attend un JSON)
+DROPBOX_TOKEN_JSON="$DROPBOX_TOKEN"
+if [[ "$DROPBOX_TOKEN" != \{* ]]; then
+    DROPBOX_TOKEN_JSON=$(printf '{"access_token":"%s","token_type":"bearer","expiry":"0001-01-01T00:00:00Z"}' "$DROPBOX_TOKEN")
+fi
+
 # Tester la connexion Dropbox
 log_info "Test de connexion à Dropbox..."
 
 if docker run --rm \
     -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
-    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN_JSON}" \
     rclone/rclone:latest \
     lsd dropbox: &>/dev/null; then
     log_info "✅ Connexion Dropbox réussie"
@@ -74,7 +80,7 @@ log_info "Création de la structure de dossiers..."
 
 docker run --rm \
     -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
-    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN_JSON}" \
     rclone/rclone:latest \
     mkdir -p dropbox:moodle_backups/database \
     dropbox:moodle_backups/files \
@@ -87,7 +93,7 @@ log_info "✅ Structure créée dans Dropbox"
 log_info "Espace Dropbox disponible:"
 docker run --rm \
     -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
-    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+    -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN_JSON}" \
     rclone/rclone:latest \
     about dropbox:
 

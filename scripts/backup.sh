@@ -58,6 +58,12 @@ else
     log_warn "Fichier .env non trouvé, utilisation des variables système"
 fi
 
+# Normaliser le token Dropbox pour rclone (Dropbox attend un JSON)
+DROPBOX_TOKEN_JSON="${DROPBOX_TOKEN:-}"
+if [ -n "${DROPBOX_TOKEN_JSON}" ] && [[ "${DROPBOX_TOKEN_JSON}" != \{* ]]; then
+    DROPBOX_TOKEN_JSON=$(printf '{"access_token":"%s","token_type":"bearer","expiry":"0001-01-01T00:00:00Z"}' "${DROPBOX_TOKEN_JSON}")
+fi
+
 # Fonction de sauvegarde de la base de données
 backup_database() {
     log_info "Sauvegarde de la base de données..."
@@ -192,7 +198,7 @@ cleanup_old_backups() {
         log_info "Nettoyage des sauvegardes Dropbox (>30 jours)..."
         docker run --rm \
             -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
-            -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+            -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN_JSON}" \
             rclone/rclone:latest \
             delete dropbox:moodle_backups --min-age 30d --rmdirs || true
         log_info "✅ Nettoyage Dropbox terminé"
@@ -232,7 +238,7 @@ upload_to_dropbox() {
             if docker run --rm \
                 -v "$(dirname "$file")":/backup:ro \
                 -e RCLONE_CONFIG_DROPBOX_TYPE=dropbox \
-                -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN}" \
+                -e "RCLONE_CONFIG_DROPBOX_TOKEN=${DROPBOX_TOKEN_JSON}" \
                 rclone/rclone:latest \
                 copy "/backup/$filename" "dropbox:${dest_dir}/" --progress; then
                 log_info "✅ Upload réussi: $filename"
