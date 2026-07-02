@@ -20,7 +20,7 @@ $CFG->dboptions = array (
 );
 
 // Site URL - CRITICAL: must match external access URL
-$CFG->wwwroot   = getenv('MOODLE_WWWROOT') ?: 'https://ecole-en-ligne.ceredis.net';
+$CFG->wwwroot   = getenv('MOODLE_WWWROOT') ?: 'https://academie.ceredis.net';
 
 // Data directory (outside webroot for security)
 $CFG->dataroot  = '/var/www/moodledata';
